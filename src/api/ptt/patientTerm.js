@@ -1,15 +1,8 @@
 import request from '@/utils/request'
 
-export function getDicts() {
-  return request({
-    url: 'api/dict/all',
-    method: 'get'
-  })
-}
-
 export function add(data) {
   return request({
-    url: 'api/dict',
+    url: 'api/ptt/patientTerm',
     method: 'post',
     data
   })
@@ -17,7 +10,7 @@ export function add(data) {
 
 export function del(ids) {
   return request({
-    url: 'api/dict/',
+    url: 'api/ptt/patientTerm',
     method: 'delete',
     data: ids
   })
@@ -25,10 +18,10 @@ export function del(ids) {
 
 export function edit(data) {
   return request({
-    url: 'api/dict',
+    url: 'api/ptt/patientTerm',
     method: 'put',
     data
   })
 }
 
-export default { add, edit, del, getDicts }
+export default { add, edit, del }

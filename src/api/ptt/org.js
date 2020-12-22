@@ -1,15 +1,23 @@
 import request from '@/utils/request'
 
-export function getDicts() {
+export function getOrgs(params) {
   return request({
-    url: 'api/dict/all',
+    url: 'api/ptt/org/list',
+    method: 'get',
+    params
+  })
+}
+
+export function getChild(id) {
+  return request({
+    url: 'api/ptt/org/child?id=' + id,
     method: 'get'
   })
 }
 
 export function add(data) {
   return request({
-    url: 'api/dict',
+    url: 'api/ptt/org',
     method: 'post',
     data
   })
@@ -17,7 +25,7 @@ export function add(data) {
 
 export function del(ids) {
   return request({
-    url: 'api/dict/',
+    url: 'api/ptt/org',
     method: 'delete',
     data: ids
   })
@@ -25,10 +33,10 @@ export function del(ids) {
 
 export function edit(data) {
   return request({
-    url: 'api/dict',
+    url: 'api/ptt/org',
     method: 'put',
     data
   })
 }
 
-export default { add, edit, del, getDicts }
+export default { add, edit, del, getOrgs, getChild }

@@ -1,5 +1,5 @@
 import { initData, download } from '@/api/data'
-import { parseTime, downloadFile } from '@/utils/index'
+import { parseTime, parseMoney, downloadFile } from '@/utils/index'
 import Vue from 'vue'
 
 /**
@@ -667,7 +667,8 @@ function presenter(crud) {
       this.crud = this.$crud['defalut'] || cruds[0]
     },
     methods: {
-      parseTime
+      parseTime,
+      parseMoney
     },
     created() {
       for (const k in this.$crud) {

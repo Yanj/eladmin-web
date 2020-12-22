@@ -1,15 +1,8 @@
 import request from '@/utils/request'
 
-export function getDicts() {
-  return request({
-    url: 'api/dict/all',
-    method: 'get'
-  })
-}
-
 export function add(data) {
   return request({
-    url: 'api/dict',
+    url: 'api/recovery/rcvOrg',
     method: 'post',
     data
   })
@@ -17,7 +10,7 @@ export function add(data) {
 
 export function del(ids) {
   return request({
-    url: 'api/dict/',
+    url: 'api/recovery/rcvOrg/',
     method: 'delete',
     data: ids
   })
@@ -25,10 +18,18 @@ export function del(ids) {
 
 export function edit(data) {
   return request({
-    url: 'api/dict',
+    url: 'api/recovery/rcvOrg',
     method: 'put',
     data
   })
 }
 
-export default { add, edit, del, getDicts }
+export function getOrgs(params) {
+  return request({
+    url: 'api/recovery/rcvOrg/list',
+    method: 'get',
+    params
+  })
+}
+
+export default { add, edit, del, getOrgs }
