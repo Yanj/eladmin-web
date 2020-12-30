@@ -71,8 +71,16 @@
             <el-table-column label="医院" prop="dept.name" />
             <el-table-column label="编码" prop="code" />
             <el-table-column label="名称" prop="name" />
-            <el-table-column label="现价" prop="price" />
-            <el-table-column label="原价" prop="originalPrice" />
+            <el-table-column label="现价" prop="price">
+              <template slot-scope="scope">
+                {{ parseMoney(scope.row.price) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="原价" prop="originalPrice">
+              <template slot-scope="scope">
+                {{ parseMoney(scope.row.originalPrice) }}
+              </template>
+            </el-table-column>
             <el-table-column label="次数" prop="times" />
             <el-table-column label="单位" prop="unit" />
             <el-table-column label="状态" prop="status" />

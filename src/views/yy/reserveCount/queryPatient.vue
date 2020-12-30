@@ -23,27 +23,24 @@
         </div>
       </div>
       <div class="body-container">
-        <el-row :gutter="10" style="margin-top: 10px">
-          <el-col :xs="24" :sm="24" :md="10" :lg="11" :xl="11">
-            <el-card class="box-card">
-              <el-tooltip class="item" effect="dark" content="数据查询条件同步患者信息" placement="top">
-                <span class="role-span">患者列表</span>
-              </el-tooltip>
-              <patient ref="patientList" :show-header="false" @current-change="handlePatientChange" />
-            </el-card>
-          </el-col>
-          <el-col :xs="24" :sm="24" :md="14" :lg="13" :xl="13">
-            <el-card class="box-card">
-              <el-tooltip class="item" effect="dark" content="选择指定患者查看患者套餐列表" placement="top">
-                <span class="role-span">患者套餐列表</span>
-              </el-tooltip>
-              <patient-term ref="patientTermList" :show-header="false" @current-change="handlePatientTermChange" />
-            </el-card>
-          </el-col>
-        </el-row>
-        <div style="margin-top: 10px;">
-          <reserve ref="reserveList" :show-header="false" />
-        </div>
+        <el-card class="box-card" style="margin-top: 20px">
+          <el-tooltip class="item" effect="dark" content="数据查询条件同步患者信息" placement="top">
+            <span class="role-span">患者列表</span>
+          </el-tooltip>
+          <patient ref="patientList" :show-header="false" @current-change="handlePatientChange" @after-refresh="handlePatientAfterRefresh" />
+        </el-card>
+        <el-card class="box-card" style="margin-top: 20px">
+          <el-tooltip class="item" effect="dark" content="选择指定患者查看患者套餐列表" placement="top">
+            <span class="role-span">患者套餐列表</span>
+          </el-tooltip>
+          <patient-term ref="patientTermList" :show-header="false" @current-change="handlePatientTermChange" @after-refresh="handlePatientTermAfterRefresh" />
+        </el-card>
+        <el-card class="box-card" style="margin-top: 20px">
+          <el-tooltip class="item" effect="dark" content="选择指定患者查看患者套餐列表" placement="top">
+            <span class="role-span">患者套餐已预约列表</span>
+          </el-tooltip>
+          <reserve ref="reserveList" :show-header="false" @after-submit="handleReserveAfterSubmit" @after-cancel="handleReserveAfterCancel" />
+        </el-card>
       </div>
     </div>
   </el-dialog>
@@ -62,12 +59,21 @@ export default {
     return {
       dialogVisible: false,
       query: { infoType: null, patientInfo: null },
-      dept: { id: null, name: null },
-      workTime: { id: null },
-      date: null,
-      term: { id: null },
-      currentPatient: null,
-      currentPatientTerm: null
+      dept: { id: null, name: null }, // 外部传入: 部门
+      workTime: { id: null }, // 外部传入: 预约时段
+      date: null, // 外部传入: 预约日期
+      term: { code: null }, // 外部传入: 套餐
+      currentPatient: null, // 当前选中患者
+      currentPatientTerm: null, // 当前选中患者套餐
+      hasAnythingChanged: false // 是否有数据改变
+    }
+  },
+  watch: {
+    dialogVisible: function(val) {
+      // 有改变, 发布事件
+      if (!val && this.hasAnythingChanged) {
+        this.$emit('changed')
+      }
     }
   },
   methods: {
@@ -76,6 +82,9 @@ export default {
       this.clearPatientList()
       // 清空患者套餐列表
       this.clearPatientTermList()
+      // 重置数据
+      this.hasAnythingChanged = false
+      // 显示对话框
       this.dialogVisible = true
     },
     hide() {
@@ -89,6 +98,9 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       })
+      // 清空选中
+      this.clearPatientList()
+      this.clearPatientTermList()
       // 同步患者信息
       syncPatient(this.query).then(res => {
         // 关闭弹窗
@@ -142,12 +154,25 @@ export default {
       }
       this.$refs.patientList.crud.toQuery()
     },
-    // 情况患者列表
+    // 清空患者列表
     clearPatientList() {
+      this.currentPatient = null
+      if (this.$refs.patientList) {
+        this.$refs.patientList.clearSelection()
+        this.$refs.patientList.clear()
+      }
     },
+    // 患者列表刷新后
+    handlePatientAfterRefresh(crud) {
+      // 选中第 0 行
+      this.$refs.patientList.setCurrentRowByIndex(0)
+    },
+    // 选中患者改变事件, 刷新患者套餐列表
     handlePatientChange(row) {
       console.log(row)
       this.currentPatient = row
+      // 清空患者套餐列表
+      this.clearPatientTermList()
       // 查询患者套餐列表
       this.loadPatientTermList(row.id)
     },
@@ -158,15 +183,49 @@ export default {
     },
     // 清空患者套餐列表
     clearPatientTermList() {
+      this.currentPatientTerm = null
+      if (this.$refs.patientTermList) {
+        this.$refs.patientTermList.clearSelection()
+        this.$refs.patientTermList.clear()
+      }
     },
-    // 选中患者套餐处理
+    // 患者列表刷新后
+    handlePatientTermAfterRefresh(crud) {
+      // 如果设置了 termCode, 则默认选中该 termCode 的患者套餐
+      if (this.term && this.term.code) {
+        this.$refs.patientTermList.setCurrentRowByTermCode(this.term.code)
+      }
+    },
+    // 选中患者套餐事件, 刷新患者套餐预约列表
     handlePatientTermChange(row) {
       console.log(row)
       this.currentPatientTerm = row
+      // 清空预约列表
+      this.clearReserveList()
+      // 查询预约列表
+      this.loadReserveList(row.id)
+    },
+    // 刷新当前患者套餐
+    refreshCurrentPatientTerm() {
+      console.log(this.currentPatientTerm)
+      if (this.currentPatientTerm && this.currentPatientTerm.id) {
+        this.$refs.patientTermList.refreshRowById(this.currentPatientTerm.id)
+      }
+    },
+    // 查询预约列表
+    loadReserveList(patientTermId) {
       this.$refs.reserveList.query.deptId = this.dept.id
-      this.$refs.reserveList.query.patientTermId = row.id
+      this.$refs.reserveList.query.patientTermId = patientTermId
       this.$refs.reserveList.crud.toQuery()
     },
+    // 清空预约列表
+    clearReserveList() {
+      if (this.$refs.reserveList) {
+        this.$refs.reserveList.clearSelection()
+        this.$refs.reserveList.clear()
+      }
+    },
+    // 新增
     handleAdd() {
       this.$refs.reserveList.preFormData = {
         dept: this.dept,
@@ -176,6 +235,16 @@ export default {
         date: this.date
       }
       this.$refs.reserveList.crud.toAdd()
+    },
+    // 新增成功后, 刷新剩余次数
+    handleReserveAfterSubmit() {
+      this.hasAnythingChanged = true
+      this.refreshCurrentPatientTerm()
+    },
+    // 取消成功后, 刷新剩余次数
+    handleReserveAfterCancel() {
+      this.hasAnythingChanged = true
+      this.refreshCurrentPatientTerm()
     }
   }
 }

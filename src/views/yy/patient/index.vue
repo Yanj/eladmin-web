@@ -39,6 +39,7 @@
       v-loading="crud.loading"
       :data="crud.data"
       row-key="id"
+      highlight-current-row
       @select="crud.selectChange"
       @select-all="crud.selectAllChange"
       @selection-change="crud.selectionChangeHandler"
@@ -129,13 +130,36 @@ export default {
     }
   },
   methods: {
+    // 刷新之后
+    [CRUD.HOOK.afterRefresh](crud) {
+      this.$emit('after-refresh', crud)
+    },
     // 提交前的验证
     [CRUD.HOOK.afterValidateCU]() {
       return true
     },
     // 处理列表选中事件
     handleCurrentChange(row) {
-      this.$emit('current-change', row)
+      if (row) {
+        this.$emit('current-change', row)
+      }
+    },
+    // 清空表格选中
+    clearSelection() {
+      this.$refs.table.clearSelection()
+    },
+    // 清空数据
+    clear() {
+      this.crud.data = []
+    },
+    // 根据套餐编码设置选中行
+    setCurrentRowByIndex(index) {
+      for (let i = 0; i < this.crud.data.length; i++) {
+        if (index === i) {
+          this.$refs.table.setCurrentRow(this.crud.data[i])
+          break
+        }
+      }
     }
   }
 }

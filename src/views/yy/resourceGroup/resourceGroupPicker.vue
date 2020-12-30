@@ -49,8 +49,8 @@ export default {
       type: Number,
       default: null
     },
-    termId: {
-      type: Number,
+    termCode: {
+      type: String,
       default: null
     },
     disabled: {
@@ -72,7 +72,7 @@ export default {
       // 加载所有资源分组
       this.loadAllResourceGroups()
     },
-    termId: function(val) {
+    termCode: function(val) {
       // 加载所有资源分组
       this.loadAllResourceGroups()
     },
@@ -101,8 +101,8 @@ export default {
       if (this.type === 'dept') {
         getAllResourceGroups({ deptId: this.deptId }).then(cb)
       } else if (this.type === 'term') {
-        if (this.deptId != null && this.termId != null) {
-          getAllTermResourceGroups(this.deptId, this.termId).then(cb)
+        if (this.deptId != null && this.termCode != null) {
+          getAllTermResourceGroups(this.deptId, this.termCode).then(cb)
         }
       }
     },

@@ -81,6 +81,7 @@
       v-loading="crud.loading"
       :data="crud.data"
       row-key="id"
+      highlight-current-row
       @select="crud.selectChange"
       @select-all="crud.selectAllChange"
       @selection-change="crud.selectionChangeHandler"
@@ -223,6 +224,10 @@ export default {
     this.getAllPatient()
   },
   methods: {
+    // 刷新之后
+    [CRUD.HOOK.afterRefresh](crud) {
+      this.$emit('after-refresh', crud)
+    },
     // 开始 "新建/编辑" - 之前
     [CRUD.HOOK.afterToCU](crud, form) {
       if (form.id == null) {
@@ -283,7 +288,40 @@ export default {
     },
     // 处理列表选中改变事件
     handleCurrentChange(row) {
-      this.$emit('current-change', row)
+      if (row) {
+        this.$emit('current-change', row)
+      }
+    },
+    // 清空表格选中
+    clearSelection() {
+      this.$refs.table.clearSelection()
+    },
+    // 清空数据
+    clear() {
+      this.crud.data = []
+    },
+    // 根据套餐编码设置选中行
+    setCurrentRowByTermCode(termCode) {
+      for (let i = 0; i < this.crud.data.length; i++) {
+        if (this.crud.data[i].termCode === termCode) {
+          this.$refs.table.setCurrentRow(this.crud.data[i])
+          break
+        }
+      }
+    },
+    // 根据 id 刷新数据
+    refreshRowById(id) {
+      crudApi.getById(id).then(res => {
+        console.log(res)
+        for (let i = 0; i < this.crud.data.length; i++) {
+          console.log(this.crud.data[i])
+          if (res.id === this.crud.data[i].id) {
+            // 更新数量
+            this.crud.data[i].times = res.times
+            break
+          }
+        }
+      })
     }
   }
 }

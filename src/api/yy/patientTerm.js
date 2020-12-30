@@ -24,4 +24,11 @@ export function edit(data) {
   })
 }
 
-export default { add, edit, del }
+export function getById(id) {
+  return request({
+    url: 'api/yy/patientTerm/' + id,
+    method: 'get'
+  })
+}
+
+export default { add, edit, del, getById }

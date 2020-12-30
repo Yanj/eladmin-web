@@ -31,7 +31,7 @@
             type="term"
             :disabled="form.id != null"
             :dept-id="currentHospital.id"
-            :term-id="currentPatientTerm.id"
+            :term-code="currentPatientTerm.termCode"
             style="width: 370px;"
             @change="handleResourceGroupChange"
           />
@@ -252,7 +252,7 @@ export default {
     // 开始 "新建/编辑" - 之前
     [CRUD.HOOK.afterToCU](crud, form) {
       console.log(form)
-      if (this.showHeader) {
+      if (this.showHeader) { // 显示头部, 表示正常进入页面的
         if (form.id == null) {
           form.dept = this.currentHospital
           form.patient = { id: null, name: null }
@@ -268,7 +268,7 @@ export default {
           this.currentPatientTerms = [form.patientTerm]
           this.currentPatientTerm = form.patientTerm
         }
-      } else {
+      } else { // 不显示头部, 表示其它组件
         if (this.preFormData) {
           this.currentHospital = this.preFormData.dept
           form.dept = this.preFormData.dept
@@ -278,6 +278,8 @@ export default {
           form.date = this.preFormData.date
           if (this.preFormData.workTime) {
             form.workTime = this.preFormData.workTime
+            form.beginTime = this.preFormData.workTime.beginTime
+            form.endTime = this.preFormData.workTime.endTime
           } else {
             form.workTime = { id: null }
           }
@@ -337,6 +339,10 @@ export default {
       }
       return true
     },
+    // 提交之后
+    [CRUD.HOOK.afterSubmit](crud) {
+      this.$emit('after-submit')
+    },
     // 查询 - 选择医院事件
     handleHospitalChange(val) {
       console.log('[handle changed]hospital:' + val.id)
@@ -393,6 +399,8 @@ export default {
       }).then(() => {
         crudApi.cancel(row).then(res => {
           this.updateCrudData(res)
+          // 发送取消成功事件
+          this.$emit('after-cancel')
         })
       }).catch(() => {
       })
@@ -421,6 +429,14 @@ export default {
           }
         }
       }
+    },
+    // 清空表格选中
+    clearSelection() {
+      this.$refs.table.clearSelection()
+    },
+    // 清空数据
+    clear() {
+      this.crud.data = []
     }
   }
 }

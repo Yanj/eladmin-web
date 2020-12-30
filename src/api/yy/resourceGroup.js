@@ -39,9 +39,9 @@ export function getAllResourceGroups(params) {
   })
 }
 
-export function getAllTermResourceGroups(deptId, termId) {
+export function getAllTermResourceGroups(deptId, termCode) {
   return request({
-    url: 'api/yy/resourceGroup/term?deptId=' + deptId + '&termId=' + termId,
+    url: 'api/yy/resourceGroup/term?deptId=' + deptId + '&termCode=' + termCode,
     method: 'get'
   })
 }

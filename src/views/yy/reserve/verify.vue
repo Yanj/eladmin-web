@@ -12,9 +12,9 @@
       <el-form-item v-if="currentReserve.patientTerm != null" label="名称">
         <el-input v-model="currentReserve.patientTerm.termName" :disabled="true" style="width: 360px" />
       </el-form-item>
-      <el-form-item v-for="(resourceCategory, index) in currentReserve.resourceGroup.resourceCategories" :key="index" :label="resourceCategory.name">
-        <el-select v-model="form.resources[index]" value-key="id" style="width: 360px">
-          <el-option v-for="resource in resourceCategory.resources" :key="resource.id" :label="resource.name" :value="resource" />
+      <el-form-item v-for="(item, index) in form.reserveResources" :key="index" :label="item.resourceCategory.name">
+        <el-select v-model="form.reserveResources[index].resource" value-key="id" style="width: 360px">
+          <el-option v-for="resource in item.resourceCategory.resources" :key="resource.id" :label="resource.name" :value="resource" />
         </el-select>
       </el-form-item>
     </el-form>
@@ -44,9 +44,9 @@ export default {
           },
           resourceGroup: {
             id: null,
-            name: null,
-            resourceCategories: []
-          }
+            name: null
+          },
+          reserveResources: []
         }
       }
     }
@@ -54,17 +54,21 @@ export default {
   data: function() {
     return {
       dialogVisible: false,
-      currentReserve: { ...this.value, resourceGroup: { id: null, resourceCategories: [] }},
+      currentReserve: this.value,
       form: {
         id: null,
-        resources: []
+        resourceGroup: { id: null },
+        reserveResources: []
       }
     }
   },
   watch: {
     value: function(val) {
       console.log(val)
-      this.currentReserve = { ...val, resourceGroup: { id: null, resourceCategories: [] }}
+      this.currentReserve = val
+      this.form.resourceGroup = val.resourceGroup
+      this.form.id = val.id
+      this.form.reserveResources = val.reserveResources || []
     },
     dialogVisible: function(val) {
       if (val) {
@@ -88,18 +92,28 @@ export default {
       reserveApi.getResourceGroup(this.currentReserve.id).then(res => {
         if (res) {
           this.form = {
-            reserve: { id: this.currentReserve.id }, // 预约 id
+            id: this.currentReserve.id, // 预约 id
             resourceGroup: { id: res.id }, // 资源组 id
-            resources: [] // 资源
+            reserveResources: [] // 资源
           }
-          for (let i = 0; i < res.resourceCategories.length; i++) {
-            if (res.resourceCategories[i] && res.resourceCategories[i].resources && res.resourceCategories[i].resources.length === 1) {
-              this.form.resources.push(res.resourceCategories[i].resources[0])
-            } else {
-              this.form.resources.push({ id: null })
+          for (let j = 0; j < this.currentReserve.reserveResources.length; j++) {
+            const obj = {
+              id: this.currentReserve.reserveResources[j].id,
+              reserve: { id: this.currentReserve.id },
+              resourceGroup: { id: res.id },
+              resource: { id: null }
             }
+            for (let i = 0; i < res.resourceCategories.length; i++) {
+              if (this.currentReserve.reserveResources[j].resourceCategory.id === res.resourceCategories[i].id) {
+                obj.resourceCategory = res.resourceCategories[i]
+                if (res.resourceCategories[i] && res.resourceCategories[i].resources && res.resourceCategories[i].resources.length === 1) {
+                  obj.resource = res.resourceCategories[i].resources[0]
+                }
+                break
+              }
+            }
+            this.form.reserveResources.push(obj)
           }
-          this.currentReserve.resourceGroup = res
         }
       })
     }
