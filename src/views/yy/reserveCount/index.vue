@@ -14,7 +14,7 @@
         <el-button type="primary" size="small" class="filter-item" style="margin-left: 10px" @click="handleAdd">新增预约</el-button>
       </span>
     </div>
-    <el-card class="box-card" style="margin-top: 20px">
+    <el-card class="box-card">
       <el-tooltip class="item" effect="dark" content="选择指定患者查看患者套餐列表" placement="top">
         <span class="role-span">预约看板</span>
       </el-tooltip>
