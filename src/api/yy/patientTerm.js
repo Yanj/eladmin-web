@@ -31,4 +31,14 @@ export function getById(id) {
   })
 }
 
-export default { add, edit, del, getById }
+export function getListByPatientId(patientId) {
+  return request({
+    url: 'api/yy/patientTerm/list',
+    method: 'get',
+    params: {
+      patientId
+    }
+  })
+}
+
+export default { add, edit, del, getById, getListByPatientId }
