@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function add(data) {
   return request({
-    url: 'api/yy/patient',
+    url: 'api/yy/reserveResource',
     method: 'post',
     data
   })
@@ -10,7 +10,7 @@ export function add(data) {
 
 export function del(ids) {
   return request({
-    url: 'api/yy/patient',
+    url: 'api/yy/reserveResource',
     method: 'delete',
     data: ids
   })
@@ -18,25 +18,18 @@ export function del(ids) {
 
 export function edit(data) {
   return request({
-    url: 'api/yy/patient',
+    url: 'api/yy/reserveResource',
     method: 'put',
     data
   })
 }
 
-export function getAllPatient() {
+export function getReserveCountList(deptId) {
   return request({
-    url: 'api/yy/patient/list',
+    url: 'api/yy/reserveResource/reserveCount?deptId=' + deptId,
     method: 'get'
   })
 }
 
-export function syncPatient(data) {
-  return request({
-    url: 'api/yy/patient/sync',
-    method: 'put',
-    data
-  })
-}
+export default { add, edit, del, getReserveCountList }
 
-export default { add, edit, del, getAllPatient, syncPatient }

@@ -105,15 +105,15 @@ export default {
       syncPatient(this.query).then(res => {
         // 关闭弹窗
         loading.close()
-        if (res) {
-          if (Object.keys(res).length > 0) {
+        if (res && res.notExists) {
+          if (Object.keys(res.notExists).length > 0) {
             let msg = ''
-            for (const item in res) {
-              if (res.hasOwnProperty(item)) {
+            for (const item in res.notExists) {
+              if (res.notExists.hasOwnProperty(item)) {
                 if (msg.length > 0) {
                   msg += ','
                 }
-                msg += '' + item + '=' + res[item]
+                msg += '' + item + '=' + res.notExists[item]
               }
             }
             this.$confirm('套餐不存在: ' + msg, '提示', {
