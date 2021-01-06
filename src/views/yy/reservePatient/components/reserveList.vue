@@ -2,11 +2,11 @@
   <div class="reserveList-container">
     <div class="reserveList-container-inner">
       <div class="panel-title">预约列表</div>
-      <div v-if="typeof list === 'object' && list != null && list.length > 0" class="list-container">
-        <div v-for="item in list" :key="item.id" class="list-item-container">
+      <div v-if="reserveList.length > 0" class="list-container">
+        <div v-for="item in reserveList" :key="item.id" class="list-item-container">
           <div class="list-item-row">
             <label>套餐:</label>
-            <span>{{ item.termName }}</span>
+            <span>{{ item.patientTerm.termName }}</span>
           </div>
           <div class="list-item-row">
             <label>预约日期:</label>
@@ -14,7 +14,7 @@
           </div>
           <div class="list-item-row">
             <label>预约时段:</label>
-            <span>{{ item.beginTime }} - {{ item.endTime }}</span>
+            <span>{{ item.workTime.beginTime }} - {{ item.workTime.endTime }}</span>
           </div>
           <el-link>删除</el-link>
         </div>
@@ -30,7 +30,14 @@
 
 export default {
   name: 'ReserveList',
-  props: {},
+  props: {
+    reserveList: {
+      type: Array,
+      default: function() {
+        return []
+      }
+    }
+  },
   data: function() {
     return {
       list: []

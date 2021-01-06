@@ -18,17 +18,17 @@
               <el-button type="primary" @click="handleQuery">精准搜索</el-button>
             </div>
           </div>
-          <div class="patientList">
-            <patient-list ref="patientList" :patient-id="patient.id" />
+          <div class="patientTermList">
+            <patient-term-list ref="patientTermList" :patient-id="patient.id" @change="handlePatientTermChange" />
           </div>
           <div class="reserveTime">
-            <reserve-time ref="reserveTime" :dept-id="currentHospital.id" />
+            <reserve-time ref="reserveTime" :dept-id="currentHospital.id" @on-item-click="handleReserveTimeItemClick" />
           </div>
         </div>
       </el-col>
       <el-col :span="6">
         <div class="rightPanel">
-          <reserve-list ref="reserveList" />
+          <reserve-list ref="reserveList" :reserve-list="reserveList" />
         </div>
       </el-col>
     </el-row>
@@ -39,13 +39,13 @@
 import patientApi from '@/api/yy/patient'
 
 import HospitalPicker from '@/views/yy/hospital/hospitalPicker'
-import PatientList from './components/patientList'
+import PatientTermList from './components/patientTermList'
 import ReserveTime from './components/reserveTime'
 import ReserveList from './components/reserveList'
 
 export default {
   name: 'ReservePatient',
-  components: { HospitalPicker, PatientList, ReserveTime, ReserveList },
+  components: { HospitalPicker, PatientTermList, ReserveTime, ReserveList },
   data: function() {
     return {
       currentHospital: { id: null },
@@ -56,6 +56,8 @@ export default {
       patient: {
         id: null
       },
+      patientTerm: null,
+      reserveList: [],
       loading: null
     }
   },
@@ -75,7 +77,7 @@ export default {
         if (res && res.patient) {
           this.patient = res.patient
           // 刷新患者套餐列表
-          this.$refs.patientList.refresh(res.patient.id, true)
+          this.$refs.patientTermList.refresh(res.patient.id, true)
         }
       }).catch(() => {
         this.closeLoading()
@@ -97,6 +99,31 @@ export default {
       if (this.loading) {
         this.loading.close()
         this.loading = null
+      }
+    },
+    // 处理患者套餐改变
+    handlePatientTermChange(patientTerm) {
+      this.patientTerm = patientTerm
+    },
+    // 时间选择
+    handleReserveTimeItemClick(obj) {
+      console.log(obj)
+      if (this.patientTerm) {
+        // 查找已预约列表
+        let reserveIndex = -1
+        for (let i = 0; i < this.reserveList.length; i++) {
+          if (this.reserveList[i].patientTerm.id === this.patientTerm.id && this.reserveList[i].date === obj.date && this.reserveList[i].workTime.id === obj.workTime.id) {
+            reserveIndex = i
+            break
+          }
+        }
+        if (reserveIndex === -1) {
+          this.$refs.reserveTime.changeResourceCount(obj, -1)
+          this.reserveList.push({ patientTerm: this.patientTerm, date: obj.date, workTime: obj.workTime, resourceGroup: obj.resourceGroup })
+        } else {
+          this.$refs.reserveTime.changeResourceCount(obj, 1)
+          this.reserveList.splice(reserveIndex, 1)
+        }
       }
     }
   }
@@ -120,7 +147,7 @@ export default {
       .buttons {
       }
     }
-    .patientList {}
+    .patientTermList {}
     .reserveTime {}
   }
   .rightPanel {}

@@ -33,7 +33,7 @@ import patientTermApi from '@/api/yy/patientTerm'
 import { parseMoney } from '@/utils'
 
 export default {
-  name: 'PatientList',
+  name: 'PatientTermList',
   props: {
     patientId: {
       type: Number,
@@ -78,6 +78,7 @@ export default {
             // this.patientTerms = [...res, ...res, ...res]
             this.patientTerms = res
             this.currentPatientTerm = res[0]
+            this.$emit('change', this.currentPatientTerm)
           }
         })
       }
@@ -85,7 +86,7 @@ export default {
     handleCurrentPatientTerm(patientTerm) {
       console.log(patientTerm)
       this.currentPatientTerm = patientTerm
-      this.$emit('change', patientTerm)
+      this.$emit('change', this.currentPatientTerm)
     }
   }
 }
