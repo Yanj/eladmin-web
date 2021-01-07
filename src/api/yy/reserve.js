@@ -8,6 +8,14 @@ export function add(data) {
   })
 }
 
+export function addList(data) {
+  return request({
+    url: 'api/yy/reserve/list',
+    method: 'post',
+    data
+  })
+}
+
 export function del(ids) {
   return request({
     url: 'api/yy/reserve',
@@ -63,4 +71,14 @@ export function getReserveCount(params) {
   })
 }
 
-export default { add, edit, del, verify, checkIn, cancel, getResourceGroup }
+export function getReserveListByPatientTermId(patientTermId) {
+  return request({
+    url: 'api/yy/reserve',
+    method: 'get',
+    params: {
+      patientTermId
+    }
+  })
+}
+
+export default { add, addList, edit, del, verify, checkIn, cancel, getResourceGroup }

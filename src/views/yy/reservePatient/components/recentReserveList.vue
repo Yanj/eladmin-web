@@ -1,12 +1,12 @@
 <template>
-  <div class="reserveList-panel">
+  <div class="recentReserveList-panel">
     <div class="panel-title-container">
-      <div class="panel-title">预约列表</div>
-      <div class="panel-title-more" @click="handleClear">清空</div>
+      <div class="panel-title">最近预约列表</div>
+      <div class="panel-title-more">查看更多</div>
     </div>
     <div class="list-outer">
-      <div v-if="reserveList && reserveList.length > 0" class="list-container">
-        <div v-for="(item, index) in reserveList" :key="item.id" class="list-item-container" @click="handleListItemClick(item, index)">
+      <div v-if="list && list.length > 0" class="list-container">
+        <div v-for="item in list" :key="item.id" class="list-item-container">
           <div class="list-item-row">
             <label>预约套餐: </label>
             <span>{{ item.patientTerm.termName }}</span>
@@ -27,36 +27,47 @@
 </template>
 
 <script>
+import { getReserveListByPatientTermId } from '@/api/yy/reserve'
 
 export default {
-  name: 'ReserveList',
+  name: 'RecentReserveList',
   props: {
-    reserveList: {
-      type: Array,
+    patientTerm: {
+      type: Object,
       default: function() {
-        return []
+        return {}
       }
     }
   },
   data: function() {
     return {
+      list: []
     }
   },
-  created() {
+  watch: {
+    patientTerm: function(val) {
+      this.loadPatientTermList()
+    }
+  },
+  mounted() {
+    this.loadPatientTermList()
   },
   methods: {
-    handleClear() {
-      this.$emit('clear')
-    },
-    handleListItemClick(item, index) {
-      this.$emit('item-click', { item, index })
+    loadPatientTermList() {
+      if (this.patientTerm && this.patientTerm.id) {
+        getReserveListByPatientTermId(this.patientTerm.id).then(res => {
+          this.list = res.content
+        })
+      } else {
+        this.list = []
+      }
     }
   }
 }
 </script>
 
 <style lang="less" scoped>
-.reserveList-panel {
+.recentReserveList-panel {
   width: 100%;
   height: 100%;
   border: 1px solid #EEE;
@@ -115,8 +126,8 @@ export default {
             font-size: 12px;
           }
           span {
-            color: #333;
             margin-left: 10px;
+            color: #333;
             font-size: 12px;
           }
           &:first-child {
