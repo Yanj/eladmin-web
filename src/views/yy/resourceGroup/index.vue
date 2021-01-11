@@ -15,14 +15,11 @@
     <!--表单组件-->
     <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="500px">
       <el-form ref="form" inline :model="form" :rules="rules" size="small" label-width="80px">
-        <el-form-item label="医院">
+        <el-form-item v-show="false" label="医院">
           <hospital-picker :value="form.dept" :disabled="true" />
         </el-form-item>
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" style="width: 370px;" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-input v-model="form.status" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" style="width: 370px;" />
@@ -33,9 +30,8 @@
         <el-button :loading="crud.status.cu === 2" type="primary" @click="crud.submitCU">确认</el-button>
       </div>
     </el-dialog>
-    <el-row :gutter="15">
-      <!--资源分组-->
-      <el-col :xs="24" :sm="24" :md="16" :lg="16" :xl="17" style="margin-bottom: 10px">
+    <div style="display:flex;">
+      <div style="flex:3">
         <el-card class="box-card" shadow="never">
           <div slot="header" class="clearfix">
             <span class="role-span">资源分组列表</span>
@@ -53,9 +49,7 @@
             @current-change="handleCurrentChange"
           >
             <el-table-column type="selection" width="55" />
-            <el-table-column label="医院" prop="dept.name" />
-            <el-table-column label="名称" prop="name" width="150" />
-            <el-table-column label="状态" prop="status" />
+            <el-table-column label="名称" prop="name" width="250" />
             <el-table-column label="备注" prop="remark" />
             <el-table-column v-permission="['admin','resourceGroup:edit','resourceGroup:del']" label="操作" width="130px" align="center" fixed="right">
               <template slot-scope="scope">
@@ -70,13 +64,12 @@
           <!--分页组件-->
           <pagination />
         </el-card>
-      </el-col>
-      <!--资源分类-->
-      <el-col :xs="24" :sm="24" :md="8" :lg="8" :xl="7">
+      </div>
+      <div v-permission="permission.editResourceCategory" style="flex:2;margin-left:10px;">
         <el-card class="box-card" shadow="never">
           <div slot="header" class="clearfix">
             <el-tooltip class="item" effect="dark" content="选择指定分类关联分组" placement="top">
-              <span class="role-span">分组关联</span>
+              <span class="role-span">分类关联</span>
             </el-tooltip>
             <el-button
               v-permission="['admin','resourceCategory:edit']"
@@ -103,8 +96,8 @@
             @check="resourceCategoryChange"
           />
         </el-card>
-      </el-col>
-    </el-row>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -149,7 +142,8 @@ export default {
       permission: {
         add: ['admin', 'resourceGroup:add'],
         edit: ['admin', 'resourceGroup:edit'],
-        del: ['admin', 'resourceGroup:del']
+        del: ['admin', 'resourceGroup:del'],
+        editResourceCategory: ['admin', 'resourceGroup:editResourceCategory']
       },
       currentHospital: null,
       defaultProps: { children: 'children', label: 'name', isLeaf: 'leaf' },

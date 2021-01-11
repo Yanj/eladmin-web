@@ -15,14 +15,11 @@
     <!--表单组件-->
     <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="500px">
       <el-form ref="form" inline :model="form" :rules="rules" size="small" label-width="80px">
-        <el-form-item label="医院">
+        <el-form-item v-show="false" label="医院">
           <hospital-picker :value="form.dept" :disabled="true" />
         </el-form-item>
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" style="width: 370px;" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-input v-model="form.status" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" style="width: 370px;" />
@@ -45,9 +42,7 @@
       @selection-change="crud.selectionChangeHandler"
     >
       <el-table-column type="selection" width="55" />
-      <el-table-column label="医院" prop="dept.name" />
       <el-table-column label="名称" prop="name" />
-      <el-table-column label="状态" prop="status" />
       <el-table-column label="备注" prop="remark" />
       <el-table-column v-permission="['admin','resourceCategory:edit','resourceCategory:del']" label="操作" width="130px" align="center" fixed="right">
         <template slot-scope="scope">

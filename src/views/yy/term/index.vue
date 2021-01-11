@@ -15,7 +15,7 @@
     <!--表单组件-->
     <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="500px">
       <el-form ref="form" inline :model="form" :rules="rules" size="small" label-width="80px">
-        <el-form-item label="医院">
+        <el-form-item v-show="false" label="医院">
           <hospital-picker :value="currentHospital" :disabled="true" />
         </el-form-item>
         <el-form-item label="编码" prop="code">
@@ -24,11 +24,11 @@
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" style="width: 370px;" />
         </el-form-item>
-        <el-form-item label="现价" prop="price">
-          <el-input v-model="form.price" style="width: 370px;" />
+        <el-form-item label="现价" prop="editPrice">
+          <currency-input v-model="form.editPrice" :decimal="2" style="width: 370px;" />
         </el-form-item>
-        <el-form-item label="原价" prop="originalPrice">
-          <el-input v-model="form.originalPrice" style="width: 370px;" />
+        <el-form-item label="原价" prop="editOriginalPrice">
+          <currency-input v-model="form.editOriginalPrice" :decimal="2" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="次数" prop="times">
           <el-input v-model="form.times" style="width: 370px;" />
@@ -36,21 +36,14 @@
         <el-form-item label="单位" prop="unit">
           <el-input v-model="form.unit" style="width: 370px;" />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-input v-model="form.status" style="width: 370px;" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" style="width: 370px;" />
-        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="text" @click="crud.cancelCU">取消</el-button>
         <el-button :loading="crud.status.cu === 2" type="primary" @click="crud.submitCU">确认</el-button>
       </div>
     </el-dialog>
-    <el-row :gutter="15">
-      <!--资源分组-->
-      <el-col :xs="24" :sm="24" :md="16" :lg="16" :xl="17" style="margin-bottom: 10px">
+    <div style="display:flex;">
+      <div style="flex:3">
         <el-card class="box-card" shadow="never">
           <div slot="header" class="clearfix">
             <span class="role-span">套餐列表</span>
@@ -68,23 +61,23 @@
             @current-change="handleCurrentChange"
           >
             <el-table-column type="selection" width="55" />
-            <el-table-column label="医院" prop="dept.name" />
-            <el-table-column label="编码" prop="code" />
+            <el-table-column label="编码" prop="code" width="120" />
             <el-table-column label="名称" prop="name" />
-            <el-table-column label="现价" prop="price">
+            <el-table-column label="现价(元)" prop="price" width="100">
               <template slot-scope="scope">
                 {{ parseMoney(scope.row.price) }}
               </template>
             </el-table-column>
-            <el-table-column label="原价" prop="originalPrice">
+            <el-table-column label="原价(元)" prop="originalPrice" width="100">
               <template slot-scope="scope">
                 {{ parseMoney(scope.row.originalPrice) }}
               </template>
             </el-table-column>
-            <el-table-column label="次数" prop="times" />
-            <el-table-column label="单位" prop="unit" />
-            <el-table-column label="状态" prop="status" />
-            <el-table-column label="备注" prop="remark" />
+            <el-table-column label="次数" width="150">
+              <template slot-scope="scope">
+                {{ scope.row.times }} {{ scope.row.unit }}
+              </template>
+            </el-table-column>
             <el-table-column v-permission="['admin','term:edit','term:del']" label="操作" width="130px" align="center" fixed="right">
               <template slot-scope="scope">
                 <udOperation
@@ -98,16 +91,15 @@
           <!--分页组件-->
           <pagination />
         </el-card>
-      </el-col>
-      <!--资源分组-->
-      <el-col :xs="24" :sm="24" :md="8" :lg="8" :xl="7">
+      </div>
+      <div v-permission="permission.editResourceGroup" style="flex:2; margin-left: 10px;">
         <el-card class="box-card" shadow="never">
           <div slot="header" class="clearfix">
             <el-tooltip class="item" effect="dark" content="选择指定分类关联分组" placement="top">
               <span class="role-span">分组关联</span>
             </el-tooltip>
             <el-button
-              v-permission="['admin','term:edit']"
+              v-permission="permission.editResourceGroup"
               :disabled="!showButton"
               :loading="resourceGroupLoading"
               icon="el-icon-check"
@@ -131,8 +123,8 @@
             @check="resourceGroupChange"
           />
         </el-card>
-      </el-col>
-    </el-row>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -140,6 +132,7 @@
 import crudApi from '@/api/yy/term'
 import { getAllResourceGroups, getChild } from '@/api/yy/resourceGroup'
 import hospitalPicker from '@/views/yy/hospital/hospitalPicker'
+import CurrencyInput from '@/views/components/CurrencyInput'
 
 import CRUD, { presenter, header, form, crud } from '@crud/crud'
 import rrOperation from '@crud/RR.operation'
@@ -153,7 +146,9 @@ const defaultForm = {
   code: null,
   name: null,
   price: null,
+  editPrice: null,
   originalPrice: null,
+  editOriginalPrice: null,
   times: null,
   unit: null,
   status: null,
@@ -161,7 +156,7 @@ const defaultForm = {
 }
 export default {
   name: 'Term',
-  components: { crudOperation, rrOperation, udOperation, pagination, hospitalPicker },
+  components: { crudOperation, rrOperation, udOperation, pagination, hospitalPicker, CurrencyInput },
   cruds() {
     return CRUD({
       title: '套餐管理',
@@ -181,10 +176,10 @@ export default {
         name: [
           { required: true, message: '请输入名称', trigger: 'blur' }
         ],
-        price: [
+        editPrice: [
           { required: true, message: '请输入现价', trigger: 'blur' }
         ],
-        originalPrice: [
+        editOriginalPrice: [
           { required: true, message: '请输入原价', trigger: 'blur' }
         ],
         times: [
@@ -197,7 +192,8 @@ export default {
       permission: {
         add: ['admin', 'term:add'],
         edit: ['admin', 'term:edit'],
-        del: ['admin', 'term:del']
+        del: ['admin', 'term:del'],
+        editResourceGroup: ['admin', 'term:editResourceGroup']
       },
       currentHospital: null,
       defaultProps: { children: 'children', label: 'name', isLeaf: 'leaf' },
@@ -217,6 +213,14 @@ export default {
       //   })
       // }, 100)
     },
+    // 新增或者编辑之前
+    [CRUD.HOOK.beforeToCU](crud, form) {
+      // 编辑: 转换金额
+      if (form.id) {
+        form.editPrice = this.parseMoney(form.price)
+        form.editOriginalPrice = this.parseMoney(form.originalPrice)
+      }
+    },
     // 提交前的验证
     [CRUD.HOOK.afterValidateCU]() {
       if (this.form.dept === null || this.form.dept.id === null) {
@@ -229,6 +233,9 @@ export default {
         })
         return false
       }
+      // 提交前, 转换金额
+      this.form.price = parseFloat(this.form.editPrice) * 100
+      this.form.originalPrice = parseFloat(this.form.editOriginalPrice) * 100
       return true
     },
     handleHospitalChange(val) {

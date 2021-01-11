@@ -11,7 +11,7 @@
       </el-select>
       <span>
         <el-button type="primary" size="small" class="filter-item" style="margin-left: 20px" @click="loadData">搜索</el-button>
-        <el-button type="primary" size="small" class="filter-item" style="margin-left: 10px" @click="handleAdd">新增预约</el-button>
+        <el-button v-permission="permission.add" type="primary" size="small" class="filter-item" style="margin-left: 10px" @click="handleAdd">新增预约</el-button>
       </span>
     </div>
     <el-card class="box-card">
@@ -63,6 +63,9 @@ export default {
       terms: [],
       tableData: [],
       tableLoading: false,
+      permission: {
+        add: ['admin', 'reserveCount:add']
+      },
       currentHospital: null,
       query: {
         deptId: null,
