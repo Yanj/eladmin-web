@@ -90,10 +90,10 @@ export default {
           }
         },
         legend: {
-          data: ['expected', 'actual']
+          data: ['上周', '本周']
         },
         series: [{
-          name: 'expected', itemStyle: {
+          name: '上周', itemStyle: {
             normal: {
               color: '#FF005A',
               lineStyle: {
@@ -109,7 +109,7 @@ export default {
           animationEasing: 'cubicInOut'
         },
         {
-          name: 'actual',
+          name: '本周',
           smooth: true,
           type: 'line',
           itemStyle: {

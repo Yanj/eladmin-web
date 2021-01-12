@@ -81,4 +81,23 @@ export function getReserveListByPatientTermId(patientTermId) {
   })
 }
 
+export function getTodayCount(deptId) {
+  return request({
+    url: 'api/yy/reserve/todayCount',
+    method: 'get',
+    params: {
+      deptId
+    }
+  })
+}
+export function getWeekCount(deptId) {
+  return request({
+    url: 'api/yy/reserve/weekCount',
+    method: 'get',
+    params: {
+      deptId
+    }
+  })
+}
+
 export default { add, addList, edit, del, verify, checkIn, cancel, getResourceGroup }
