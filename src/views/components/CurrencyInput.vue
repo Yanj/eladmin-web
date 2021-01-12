@@ -1,8 +1,9 @@
 <template>
-  <div class="el-input el-input--small">
+  <div class="el-input el-input--small" :class="disabled ? 'is-disabled' : ''">
     <input
       ref="input"
       :value="formatValue"
+      :disabled="disabled"
       class="el-input__inner"
       @input="updatevalue($event.target.value)"
       @blur="onBlur"
@@ -31,6 +32,10 @@ export default {
       type: Number,
       default: 2,
       desc: '小数位'
+    },
+    disabled: {
+      type: Boolean,
+      default: false
     }
   },
   data() {

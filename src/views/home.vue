@@ -5,7 +5,10 @@
       <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
         <line-chart :chart-data="lineChartData" />
       </el-row>
-      <el-row :gutter="32">
+      <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
+        <single-line-chart :chart-data="workTimeCount" />
+      </el-row>
+      <el-row v-show="false" :gutter="32">
         <el-col :xs="24" :sm="24" :lg="8">
           <div class="chart-wrapper">
             <radar-chart />
@@ -29,24 +32,26 @@
 <script>
 import PanelGroup from './dashboard/PanelGroup'
 import LineChart from './dashboard/LineChart'
+import SingleLineChart from './dashboard/SingleLineChart'
 import RadarChart from '@/components/Echarts/RadarChart'
 import PieChart from '@/components/Echarts/PieChart'
 import BarChart from '@/components/Echarts/BarChart'
 
-import { getTodayCount, getWeekCount } from '@/api/yy/reserve'
+import { getTodayCount, getWeekCount, getWorkTimeCount } from '@/api/yy/reserve'
 
 export default {
   name: 'Dashboard',
   components: {
     PanelGroup,
     LineChart,
+    SingleLineChart,
     RadarChart,
     PieChart,
     BarChart
   },
   data() {
     return {
-      detpId: 32,
+      deptId: 32,
       todayCount: {
         totalCount: 0,
         preprocessCount: 0,
@@ -70,12 +75,17 @@ export default {
       lineChartData: {
         actualData: [0, 0, 0, 0, 0, 0, 0],
         expectedData: [0, 0, 0, 0, 0, 0, 0]
+      },
+      workTimeCount: {
+        workTimes: ['08:00', '08:30', '09:00'],
+        actualData: [0, 0, 0]
       }
     }
   },
   mounted() {
     this.getTodayCount()
     this.getWeekCount()
+    this.getWorkTimeCount()
   },
   methods: {
     handleSetLineChartData(type) {
@@ -85,16 +95,24 @@ export default {
       }
     },
     getTodayCount() {
-      getTodayCount(this.detpId).then(res => {
+      getTodayCount(this.deptId).then(res => {
         this.todayCount = res
       })
     },
     getWeekCount() {
-      getWeekCount(this.detpId).then(res => {
+      getWeekCount(this.deptId).then(res => {
         this.weekCount = res
         this.lineChartData = {
           actualData: this.weekCount[0].all,
           expectedData: this.weekCount[1].all
+        }
+      })
+    },
+    getWorkTimeCount() {
+      getWorkTimeCount(this.deptId).then(res => {
+        this.workTimeCount = {
+          workTimes: res.workTimes,
+          actualData: res.counts
         }
       })
     }

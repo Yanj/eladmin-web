@@ -90,9 +90,20 @@ export function getTodayCount(deptId) {
     }
   })
 }
+
 export function getWeekCount(deptId) {
   return request({
     url: 'api/yy/reserve/weekCount',
+    method: 'get',
+    params: {
+      deptId
+    }
+  })
+}
+
+export function getWorkTimeCount(deptId) {
+  return request({
+    url: 'api/yy/reserve/workTimeCount',
     method: 'get',
     params: {
       deptId

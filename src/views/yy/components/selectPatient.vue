@@ -152,6 +152,11 @@ export default {
       this.patientNames = this.getPatientNames(val)
       console.log(this.currentSelections)
       console.log(this.patientNames)
+    },
+    dialogVisible: function(val) {
+      if (val && this.$refs.table) {
+        this.$refs.table.clearSelection()
+      }
     }
   },
   methods: {

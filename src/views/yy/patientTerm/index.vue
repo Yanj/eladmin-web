@@ -13,58 +13,35 @@
     <!--表单组件-->
     <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="500px">
       <el-form ref="form" inline :model="form" :rules="rules" size="small" label-width="80px">
-        <el-form-item label="患者">
-          <el-autocomplete
-            v-model="currentPatientName"
-            popper-class="my-autocomplete"
-            :fetch-suggestions="querySearch"
-            style="width: 370px;"
-            placeholder="请输入患者名称"
-            @select="handlePatientSelect"
-          >
-            <i
-              slot="suffix"
-              class="el-icon-circle-close el-input__icon"
-              @click="handleClearPatient"
-            />
-            <template slot-scope="{ item }">
-              <div class="name">{{ item.name }}</div>
-              <span class="mrn">{{ item.mrn }}</span>
-            </template>
-          </el-autocomplete>
+        <el-form-item label="患者" prop="patient">
+          <select-patient :value="currentPatients" :disabled="form.id != null" @change="handlePatientsChange" />
         </el-form-item>
-        <el-form-item label="套餐">
-          <term-picker
-            :value="currentTerm"
-            @change="handleTermChange"
-          />
+        <el-form-item label="套餐" prop="term">
+          <select-term :value="currentTerms" :disabled="form.id != null" @change="handleTermsChange" />
         </el-form-item>
         <el-form-item label="套餐编码" prop="termCode">
-          <el-input v-model="form.termCode" style="width: 370px;" />
+          <el-input v-model="form.termCode" :disabled="true" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="套餐名称" prop="termName">
-          <el-input v-model="form.termName" style="width: 370px;" />
+          <el-input v-model="form.termName" :disabled="true" style="width: 370px;" />
         </el-form-item>
-        <el-form-item label="套餐现价" prop="termPrice">
-          <el-input v-model="form.termPrice" style="width: 370px;" />
+        <el-form-item label="套餐现价" prop="editTermPrice">
+          <currency-input v-model="form.editTermPrice" :disabled="true" style="width: 370px;" />
         </el-form-item>
-        <el-form-item label="套餐原价" prop="termOriginalPrice">
-          <el-input v-model="form.termOriginalPrice" style="width: 370px;" />
+        <el-form-item label="套餐原价" prop="editTermOriginalPrice">
+          <currency-input v-model="form.editTermOriginalPrice" :disabled="true" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="套餐次数" prop="termTimes">
-          <el-input v-model="form.termTimes" style="width: 370px;" />
+          <el-input-number v-model.number="form.termTimes" :disabled="true" :min="0" :max="999" controls-position="right" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="套餐单位" prop="termUnit">
-          <el-input v-model="form.termUnit" style="width: 370px;" />
+          <el-input v-model="form.termUnit" :disabled="true" style="width: 370px;" />
         </el-form-item>
-        <el-form-item label="实际支付" prop="price">
-          <el-input v-model="form.price" style="width: 370px;" />
+        <el-form-item label="实际支付" prop="editPrice">
+          <currency-input v-model="form.editPrice" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="剩余次数" prop="times">
-          <el-input v-model="form.times" style="width: 370px;" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-input v-model="form.status" style="width: 370px;" />
+          <el-input-number v-model.number="form.times" :min="0" :max="999" controls-position="right" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" style="width: 370px;" />
@@ -91,25 +68,31 @@
       <el-table-column label="患者" prop="patient.name" />
       <el-table-column label="套餐编码" prop="termCode" />
       <el-table-column label="套餐名称" prop="termName" />
-      <el-table-column label="套餐现价" prop="termPrice">
+      <el-table-column label="套餐现价(元)" prop="termPrice">
         <template slot-scope="scope">
           {{ parseMoney(scope.row.termPrice) }}
         </template>
       </el-table-column>
-      <el-table-column label="套餐原价" prop="termOriginalPrice">
+      <el-table-column label="套餐原价(元)" prop="termOriginalPrice">
         <template slot-scope="scope">
           {{ parseMoney(scope.row.termOriginalPrice) }}
         </template>
       </el-table-column>
-      <el-table-column label="套餐次数" prop="termTimes" />
-      <el-table-column label="套餐单位" prop="termUnit" />
+      <el-table-column label="套餐次数">
+        <template slot-scope="scope">
+          {{ scope.row.termTimes }} {{ scope.row.termUnit }}
+        </template>
+      </el-table-column>
       <el-table-column label="实际支付" prop="price">
         <template slot-scope="scope">
           {{ parseMoney(scope.row.price) }}
         </template>
       </el-table-column>
-      <el-table-column label="剩余次数" prop="times" />
-      <el-table-column label="状态" prop="status" />
+      <el-table-column label="剩余次数">
+        <template slot-scope="scope">
+          {{ scope.row.times }} {{ scope.row.termUnit }}
+        </template>
+      </el-table-column>
       <el-table-column label="备注" prop="remark" />
       <el-table-column v-permission="['admin','patientTerm:edit','patientTerm:del']" label="操作" width="130px" align="center" fixed="right">
         <template slot-scope="scope">
@@ -128,8 +111,9 @@
 
 <script>
 import crudApi from '@/api/yy/patientTerm'
-import { getAllPatient } from '@/api/yy/patient'
-import termPicker from '@/views/yy/term/termPicker'
+import CurrencyInput from '@/views/components/CurrencyInput'
+import SelectPatient from '@/views/yy/components/selectPatient'
+import SelectTerm from '@/views/yy/components/selectTerm'
 
 import CRUD, { presenter, header, form, crud } from '@crud/crud'
 import rrOperation from '@crud/RR.operation'
@@ -143,17 +127,20 @@ const defaultForm = {
   termCode: null,
   termName: null,
   termPrice: null,
+  editTermPrice: null,
   termOriginalPrice: null,
+  editTermOriginalPrice: null,
   termTimes: null,
   termUnit: null,
   price: null,
+  editPrice: null,
   times: null,
   status: null,
   remark: null
 }
 export default {
   name: 'PatientTerm',
-  components: { crudOperation, rrOperation, udOperation, pagination, termPicker },
+  components: { crudOperation, rrOperation, udOperation, pagination, CurrencyInput, SelectPatient, SelectTerm },
   cruds() {
     return CRUD({
       title: '患者套餐管理',
@@ -183,20 +170,11 @@ export default {
         termName: [
           { required: true, message: '请输入套餐名称', trigger: 'blur' }
         ],
-        termPrice: [
-          { required: true, message: '请输入套餐价格', trigger: 'blur' }
-        ],
-        termOriginalPrice: [
-          { required: true, message: '请输入套餐原价', trigger: 'blur' }
-        ],
         termTimes: [
           { required: true, message: '请输入套餐次数', trigger: 'blur' }
         ],
         termUnit: [
           { required: true, message: '请输入套餐单位', trigger: 'blur' }
-        ],
-        price: [
-          { required: true, message: '请输入实际支付金额', trigger: 'blur' }
         ],
         times: [
           { required: true, message: '请输入剩余次数', trigger: 'blur' }
@@ -207,8 +185,9 @@ export default {
         edit: ['admin', 'patientTerm:edit'],
         del: ['admin', 'patientTerm:del']
       },
-      patients: [],
-      currentPatientName: '',
+      selectPatientDialogVisible: false,
+      currentPatients: [],
+      currentTerms: [],
       currentTerm: { id: null }
     }
   },
@@ -219,10 +198,6 @@ export default {
       }, 500)
     }
   },
-  mounted() {
-    // 加载全部患者
-    this.getAllPatient()
-  },
   methods: {
     // 刷新之后
     [CRUD.HOOK.afterRefresh](crud) {
@@ -230,13 +205,18 @@ export default {
     },
     // 开始 "新建/编辑" - 之前
     [CRUD.HOOK.afterToCU](crud, form) {
-      if (form.id == null) {
-        form.patient = { id: null, name: null }
-        this.currentPatientName = ''
-      } else {
+      if (form.id) {
         this.currentPatientName = form.patient.name
+        form.editPrice = this.parseMoney(form.price)
+        form.editTermPrice = this.parseMoney(form.termPrice)
+        form.editTermOriginalPrice = this.parseMoney(form.termOriginalPrice)
+        this.currentPatients = [form.patient]
+      } else {
+        form.patient = { id: null, name: null }
+        this.currentPatients = []
+        this.currentTerm = { id: null }
+        this.currentTerms = []
       }
-      this.currentTerm = { id: null }
     },
     // 提交前的验证
     [CRUD.HOOK.afterValidateCU]() {
@@ -247,44 +227,42 @@ export default {
         })
         return false
       }
+      // 提交前, 转换金额
+      this.form.price = parseFloat(this.form.editPrice) * 100
+      this.form.termPrice = parseFloat(this.form.editTermPrice) * 100
+      this.form.termOriginalPrice = parseFloat(this.form.editTermOriginalPrice) * 100
       return true
     },
-    // 加载全部患者
-    getAllPatient() {
-      getAllPatient().then(res => {
-        if (res) {
-          this.patients = res
-        }
-      })
-    },
-    querySearch(queryString, cb) {
-      console.log(this.patients)
-      const patients = this.patients
-      const result = queryString ? patients.filter(this.createFilter(queryString)) : patients
-      console.log(result)
-      cb(result)
-    },
-    createFilter(queryString) {
-      return (patient) => {
-        return (patient.name.indexOf(queryString) === 0)
+    // 表单填写 - 选择患者事件
+    handlePatientsChange(val) {
+      this.currentPatients = val
+      if (val) {
+        this.form.patient = val[0]
       }
     },
-    handlePatientSelect(item) {
-      this.form.patient = item
-      this.currentPatientName = item.name
-    },
-    handleClearPatient() {
-      this.form.patient = null
-      this.currentPatientName = null
+    // 表单填写 - 选择套餐事件
+    handleTermsChange(val) {
+      console.log(val)
+      this.currentTerms = val
+      if (val) {
+        this.handleTermChange(val[0])
+      }
     },
     handleTermChange(val) {
-      this.currentTerm = val
-      this.form.termCode = val.code
-      this.form.termName = val.name
-      this.form.termPrice = val.price
-      this.form.termOriginalPrice = val.originalPrice
-      this.form.termTimes = val.times
-      this.form.termUnit = val.unit
+      if (val) {
+        this.currentTerm = val
+        this.form.termCode = val.code
+        this.form.termName = val.name
+        this.form.termPrice = val.price
+        this.form.editTermPrice = this.parseMoney(val.price)
+        this.form.termOriginalPrice = val.originalPrice
+        this.form.editTermOriginalPrice = this.parseMoney(val.originalPrice)
+        this.form.termTimes = val.times
+        this.form.termUnit = val.unit
+        this.form.price = val.price
+        this.form.editPrice = this.parseMoney(val.price)
+        this.form.times = val.times
+      }
     },
     // 处理列表选中改变事件
     handleCurrentChange(row) {
