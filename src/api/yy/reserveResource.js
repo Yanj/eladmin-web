@@ -24,12 +24,13 @@ export function edit(data) {
   })
 }
 
-export function getReserveCountList(deptId) {
+export function getReserveCountList(params) {
   return request({
-    url: 'api/yy/reserveResource/reserveCount?deptId=' + deptId,
-    method: 'get'
+    url: 'api/yy/reserveResource/reserveCount',
+    method: 'get',
+    params
   })
 }
 
-export default { add, edit, del, getReserveCountList }
+export default { add, edit, del }
 

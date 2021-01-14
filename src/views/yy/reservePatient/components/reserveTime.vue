@@ -1,5 +1,43 @@
 <template>
   <div>
+    <div class="filter-container" style="margin-bottom: 10px;">
+      <label>日期: </label>
+      <el-date-picker
+        v-model="dateRange"
+        type="daterange"
+        range-separator="至"
+        start-placeholder="开始日期"
+        end-placeholder="结束日期"
+        value-format="yyyy-MM-dd"
+        style="width: 300px;"
+        @change="handleDateRangeChange"
+      />
+      <label>时间段: </label>
+      <el-time-select
+        v-model="startTime"
+        placeholder="起始时间"
+        :picker-options="{
+          start: '08:30',
+          step: '00:15',
+          end: '18:30'
+        }"
+        style="width: 150px;"
+        @change="handleStartTimeChange"
+      />
+      <el-time-select
+        v-model="endTime"
+        placeholder="结束时间"
+        :picker-options="{
+          start: '08:30',
+          step: '00:15',
+          end: '18:30',
+          minTime: startTime
+        }"
+        style="width: 150px;"
+        @change="handleEndTimeChange"
+      />
+      <el-button type="primary" size="mini" @click="handleFilter">过滤</el-button>
+    </div>
     <el-table v-loading="loading" :data="tableData" :span-method="tableSpanMethod" :cell-class-name="tableCellClassMethod">
       <el-table-column label="日期" prop="date" align="center" />
       <el-table-column label="时段" align="center">
@@ -11,7 +49,7 @@
       <el-table-column v-for="item in resourceGroups" :key="item.id" :label="item.name" align="center">
         <template slot-scope="scope">
           <div style="background: #00000000;" @click.stop="handleResourceClick({resourceGroup: item, date: scope.row.date, workTime: scope.row.workTime, index: scope.$index})">
-            <label :class="scope.row.leftMap[item.id+''] !== originalTableData[scope.$index].leftMap[item.id+''] ? 'resourceGroup-count-changed': ''">{{ scope.row.leftMap[item.id+''] }}</label>
+            <label :class="scope.row.usedMap[item.id+''] !== originalTableData[scope.$index].usedMap[item.id+''] ? 'resourceGroup-count-changed': ''">{{ scope.row.usedMap[item.id+''] }}</label>
             <label>/</label>
             <label :class="scope.row.leftMap[item.id+''] === 0 ? 'resourceGroup-disabled':''">{{ scope.row.countMap[item.id+''] }}</label>
           </div>
@@ -41,14 +79,21 @@ export default {
   data: function() {
     return {
       query: {
-        deptId: null
+        deptId: null,
+        beginDate: null,
+        endDate: null,
+        beginTime: null,
+        endTime: null
       },
       resourceGroups: [],
       originalResourceGroups: [],
       tableData: [],
       originalTableData: [],
       loading: false,
-      currentResourceGroups: []
+      currentResourceGroups: [],
+      dateRange: ['', ''],
+      startTime: '',
+      endTime: ''
     }
   },
   watch: {
@@ -68,6 +113,22 @@ export default {
     this.loadResourceGroups()
   },
   methods: {
+    handleDateRangeChange(val) {
+      console.log(val)
+    },
+    handleStartTimeChange(val) {
+      console.log(val)
+    },
+    handleEndTimeChange(val) {
+      console.log(val)
+    },
+    handleFilter() {
+      this.query.beginDate = this.dateRange[0]
+      this.query.endDate = this.dateRange[1]
+      this.query.beginTime = this.startTime
+      this.query.endTime = this.endTime
+      this.loadReserveCountList()
+    },
     // 单元格点击事件
     handleResourceClick(obj) {
       if (this.term) {
@@ -171,7 +232,7 @@ export default {
     },
     // 加载列表数据
     loadReserveCountList() {
-      getReserveCountList(this.query.deptId).then(res => {
+      getReserveCountList(this.query).then(res => {
         this.tableData = JSON.parse(JSON.stringify(res))
         this.originalTableData = res
       }).finally(() => {
@@ -183,6 +244,17 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.filter-container {
+  margin-bottom: 10px;
+  label {
+    margin-left: 10px;
+    color: #333;
+    font-size: 12px;
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+}
 </style>
 <style>
 .el-table td.resourceGroup-available {
