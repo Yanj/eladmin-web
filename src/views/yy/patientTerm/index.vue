@@ -8,7 +8,26 @@
         <el-input v-model="query.patientName" clearable size="small" placeholder="输入患者名称进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
         <rrOperation />
       </div>
-      <crudOperation :permission="permission" />
+      <crudOperation :permission="permission">
+        <template v-slot:right>
+          <el-button
+            v-permission="permission.freeOne"
+            class="filter-item"
+            size="mini"
+            type="warning"
+            :disabled="!canAddFreeOne"
+            @click="createFreeOne"
+          >赠送一次</el-button>
+          <el-button
+            v-permission="permission.freeTwo"
+            class="filter-item"
+            size="mini"
+            type="warning"
+            :disabled="!canAddFreeTwo"
+            @click="createFreeTwo"
+          >赠送两次</el-button>
+        </template>
+      </crudOperation>
     </div>
     <!--表单组件-->
     <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="500px">
@@ -61,7 +80,7 @@
       highlight-current-row
       @select="crud.selectChange"
       @select-all="crud.selectAllChange"
-      @selection-change="crud.selectionChangeHandler"
+      @selection-change="handleSelectionChange"
       @current-change="handleCurrentChange"
     >
       <el-table-column type="selection" width="55" />
@@ -183,12 +202,16 @@ export default {
       permission: {
         add: ['admin', 'patientTerm:add'],
         edit: ['admin', 'patientTerm:edit'],
-        del: ['admin', 'patientTerm:del']
+        del: ['admin', 'patientTerm:del'],
+        freeOne: ['admin', 'patientTerm:freeOne'],
+        freeTwo: ['admin', 'patientTerm:freeTwo']
       },
       selectPatientDialogVisible: false,
       currentPatients: [],
       currentTerms: [],
-      currentTerm: { id: null }
+      currentTerm: { id: null },
+      canAddFreeOne: false,
+      canAddFreeTwo: false
     }
   },
   created() {
@@ -263,6 +286,35 @@ export default {
         this.form.editPrice = this.parseMoney(val.price)
         this.form.times = val.times
       }
+    },
+    createFreeOne() {
+      crudApi.addFreeOne(this.crud.selections[0]).then(res => {
+        console.log(res)
+        this.crud.toQuery()
+      })
+    },
+    createFreeTwo() {
+      crudApi.addFreeTwo(this.crud.selections[0]).then(res => {
+        console.log(res)
+        this.crud.toQuery()
+      })
+    },
+    handleSelectionChange(selection) {
+      this.crud.selectionChangeHandler(selection)
+      let canAddFreeOne = false
+      let canAddFreeTwo = false
+      if (this.crud.selections.length === 1) {
+        const sel = this.crud.selections[0]
+        console.log(sel)
+        if (!sel.parent && (!sel.freeTimes || sel.freeTimes < 1)) {
+          canAddFreeOne = true
+        }
+        if (!sel.parent && (!sel.freeTimes || sel.freeTimes < 2)) {
+          canAddFreeTwo = true
+        }
+      }
+      this.canAddFreeOne = canAddFreeOne
+      this.canAddFreeTwo = canAddFreeTwo
     },
     // 处理列表选中改变事件
     handleCurrentChange(row) {

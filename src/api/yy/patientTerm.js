@@ -8,6 +8,22 @@ export function add(data) {
   })
 }
 
+export function addFreeOne(data) {
+  return request({
+    url: 'api/yy/patientTerm/freeOne',
+    method: 'post',
+    data
+  })
+}
+
+export function addFreeTwo(data) {
+  return request({
+    url: 'api/yy/patientTerm/freeTwo',
+    method: 'post',
+    data
+  })
+}
+
 export function del(ids) {
   return request({
     url: 'api/yy/patientTerm',
@@ -41,4 +57,4 @@ export function getListByPatientId(patientId) {
   })
 }
 
-export default { add, edit, del, getById, getListByPatientId }
+export default { add, edit, del, getById, getListByPatientId, addFreeOne, addFreeTwo }
