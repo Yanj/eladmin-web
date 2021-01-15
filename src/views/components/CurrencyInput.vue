@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import accounting from '@/utils/accounting'
+import accounting from 'accounting'
 
 export default {
   name: 'CurrencyInput',
