@@ -5,27 +5,30 @@
       <el-date-picker
         v-model="dateRange"
         type="daterange"
+        size="mini"
         range-separator="至"
         start-placeholder="开始日期"
         end-placeholder="结束日期"
         value-format="yyyy-MM-dd"
-        style="width: 300px;"
+        style="width:300px"
         @change="handleDateRangeChange"
       />
       <label>时间段: </label>
       <el-time-select
         v-model="startTime"
+        size="mini"
         placeholder="起始时间"
         :picker-options="{
           start: '08:30',
           step: '00:15',
           end: '18:30'
         }"
-        style="width: 150px;"
+        style="width:120px"
         @change="handleStartTimeChange"
       />
       <el-time-select
         v-model="endTime"
+        size="mini"
         placeholder="结束时间"
         :picker-options="{
           start: '08:30',
@@ -33,11 +36,11 @@
           end: '18:30',
           minTime: startTime
         }"
-        style="width: 150px;"
+        style="width:120px"
         @change="handleEndTimeChange"
       />
       <el-button type="primary" size="mini" @click="handleFilter">过滤</el-button>
-    </div>
+      <el-button size="mini" @click="handleClear">清空</el-button> </div>
     <el-table v-loading="loading" :data="tableData" :span-method="tableSpanMethod" :cell-class-name="tableCellClassMethod">
       <el-table-column label="日期" prop="date" align="center" />
       <el-table-column label="时段" align="center">
@@ -129,6 +132,16 @@ export default {
       this.query.endTime = this.endTime
       this.loadReserveCountList()
     },
+    handleClear() {
+      this.dateRange = ['', '']
+      this.startTime = ''
+      this.endTime = ''
+      this.query.beginDate = null
+      this.query.endDate = null
+      this.query.beginTime = null
+      this.query.endTime = null
+      this.loadReserveCountList()
+    },
     // 单元格点击事件
     handleResourceClick(obj) {
       if (this.term) {
@@ -204,11 +217,20 @@ export default {
     // 单元格样式
     tableCellClassMethod({ row, column, rowIndex, columnIndex }) {
       if (columnIndex > 1) {
+        const resourceGroupId = this.resourceGroups[columnIndex - 2].id
+        if (row.usedMap[resourceGroupId] !== this.originalTableData[rowIndex].usedMap[resourceGroupId]) {
+          return 'resourceGroup-used'
+        }
         for (let i = 0; i < this.currentResourceGroups.length; i++) {
-          if (this.resourceGroups[columnIndex - 2].id === this.currentResourceGroups[i].id) {
-            return 'resourceGroup-available'
+          if (resourceGroupId === this.currentResourceGroups[i].id) {
+            if (row.leftMap[resourceGroupId] === 0) {
+              return 'resourceGroup-disable'
+            } else {
+              return 'resourceGroup-available'
+            }
           }
         }
+        return 'resourceGroup-disable'
       }
     },
     // 刷新数据
@@ -257,13 +279,24 @@ export default {
 }
 </style>
 <style>
-.el-table td.resourceGroup-available {
-  background-color: #F5F7FA !important;
+.el-table .el-table__body .el-table__row td.resourceGroup-available {
+  background-color: green;
+  color: white;
+}
+.el-table .el-table__body .el-table__row td.resourceGroup-disable {
+  background-color: #33000000;
+  color: #DDD;
+}
+.el-table .el-table__body .el-table__row td.resourceGroup-used {
+  background-color: deepskyblue;
+  color: white;
 }
 .resourceGroup-count-changed {
-  color: green;
+  color: white;
 }
 .resourceGroup-disabled {
-  color: red;
+}
+.el-range-editor .el-range-separator {
+  padding: 0;
 }
 </style>

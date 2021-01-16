@@ -15,8 +15,8 @@
               <el-input v-model="query.patientInfo" clearable size="small" placeholder="输入查询条件" style="margin-left:10px; width: 200px;" />
             </div>
             <div class="buttons">
-              <el-button type="primary" @click="handleQuery">精准搜索</el-button>
-              <el-button @click="resetAll">清空</el-button>
+              <el-button type="primary" @click="handleQuery">搜索</el-button>
+              <el-button type="primary" @click="handleQueryHis">HIS 搜索</el-button>
             </div>
           </div>
           <div class="patientTermList">
@@ -92,6 +92,22 @@ export default {
     },
     // 查询数据
     handleQuery() {
+      this.openLoading()
+      // 重置相关信息
+      this.resetAll()
+      // 同步患者信息
+      patientApi.queryPatient(this.query).then(res => {
+        this.closeLoading()
+        if (res && Array.isArray(res) && res.length > 0) {
+          this.patient = res[0]
+          // 刷新患者套餐列表
+          this.$refs.patientTermList.refresh(res.patient.id, true)
+        }
+      }).catch(() => {
+        this.closeLoading()
+      })
+    },
+    handleQueryHis() {
       this.openLoading()
       // 重置相关信息
       this.resetAll()

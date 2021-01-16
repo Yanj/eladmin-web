@@ -38,5 +38,12 @@ export function syncPatient(data) {
     data
   })
 }
+export function queryPatient(params) {
+  return request({
+    url: 'api/yy/patient/query',
+    method: 'get',
+    params
+  })
+}
 
-export default { add, edit, del, getAllPatient, syncPatient }
+export default { add, edit, del, getAllPatient, syncPatient, queryPatient }
