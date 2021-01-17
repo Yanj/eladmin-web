@@ -39,8 +39,8 @@
         style="width:120px"
         @change="handleEndTimeChange"
       />
-      <el-button type="primary" size="mini" @click="handleFilter">过滤</el-button>
-      <el-button size="mini" @click="handleClear">清空</el-button> </div>
+      <el-button type="primary" size="mini" style="margin-left: 10px" @click="handleFilter">过滤</el-button>
+      <el-button size="mini" style="margin-left: 10px" @click="handleClear">清空</el-button> </div>
     <el-table v-loading="loading" :data="tableData" :span-method="tableSpanMethod" :cell-class-name="tableCellClassMethod">
       <el-table-column label="日期" prop="date" align="center" />
       <el-table-column label="时段" align="center">
@@ -279,6 +279,9 @@ export default {
 }
 </style>
 <style>
+.el-table--enable-row-hover .el-table__body tr:hover>td {
+  background-color: transparent;
+}
 .el-table .el-table__body .el-table__row td.resourceGroup-available {
   background-color: green;
   color: white;

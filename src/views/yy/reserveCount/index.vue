@@ -4,21 +4,22 @@
       <!--选择医院-->
       <hospital-picker :value="currentHospital" @change="handleHospitalChange" />
       <!--选择日期-->
-      <el-date-picker v-model="query.date" type="date" size="small" value-format="yyyy-MM-dd" class="filter-item" placeholder="选择日期" @change="handleDateChange" />
+      <el-date-picker v-model="query.date" :clearable="false" type="date" size="small" value-format="yyyy-MM-dd" class="filter-item" placeholder="选择日期" @change="handleDateChange" />
       <!--选择套餐-->
-      <el-select v-model="query.termId" size="small" clearable placeholder="请选择套餐" class="filter-item" @change="handleTermChange">
+      <el-select v-show="false" v-model="query.termId" size="small" clearable placeholder="请选择套餐" class="filter-item" @change="handleTermChange">
         <el-option v-for="term in terms" :key="term.id" :label="term.name" :value="term.id" />
       </el-select>
       <span>
-        <el-button type="primary" size="small" class="filter-item" style="margin-left: 20px" @click="loadData">搜索</el-button>
-        <el-button v-permission="permission.add" type="primary" size="small" class="filter-item" style="margin-left: 10px" @click="handleAdd">新增预约</el-button>
+        <el-button v-show="false" type="primary" size="small" class="filter-item" style="margin-left: 20px" @click="loadData">搜索</el-button>
+        <el-button size="small" class="filter-item" style="margin-left: 20px" @click="clearQuery">重置</el-button>
+        <el-button v-show="false" v-permission="permission.add" type="primary" size="small" class="filter-item" style="margin-left: 10px" @click="handleAdd">新增预约</el-button>
       </span>
     </div>
     <el-card class="box-card">
       <el-tooltip class="item" effect="dark" content="选择指定患者查看患者套餐列表" placement="top">
         <span class="role-span">预约看板</span>
       </el-tooltip>
-      <el-table ref="table" v-loading="tableLoading" :data="tableData" max-height="300" highlight-current-row @current-change="handleTableCurrentChange">
+      <el-table ref="table" v-loading="tableLoading" :data="tableData" max-height="600" highlight-current-row @row-click="handleRowClick">
         <el-table-column label="时段" width="100">
           <template slot-scope="scope">
             <div style="display: flex; flex-direction: row; justify-content: start; align-items: start;">
@@ -62,6 +63,7 @@ export default {
       originalTerms: [],
       terms: [],
       tableData: [],
+      tableCurrentRow: null,
       tableLoading: false,
       permission: {
         add: ['admin', 'reserveCount:add']
@@ -82,6 +84,10 @@ export default {
     getCurrentDate() {
       this.query.date = parseTime(new Date().getTime(), '{y}-{m}-{d}')
     },
+    clearQuery() {
+      // this.$refs['table'].setCurrentRow()
+      this.handleRowClick(null)
+    },
     loadData(refreshTableHeader) {
       this.tableLoading = true
       getReserveCount(this.query).then(res => {
@@ -100,10 +106,16 @@ export default {
       })
     },
     // 选中时段改变事件, 更新预约列
-    handleTableCurrentChange(row) {
-      console.log(row)
-      if (row) {
-        this.$refs['reserveList'].query.workTimeId = row.workTime.id
+    handleRowClick(row, column, event) {
+      if (this.tableCurrentRow === row) {
+        this.tableCurrentRow = null
+      } else {
+        this.tableCurrentRow = row
+      }
+      this.$refs['table'].setCurrentRow(this.tableCurrentRow)
+
+      if (this.tableCurrentRow) {
+        this.$refs['reserveList'].query.workTimeId = this.tableCurrentRow.workTime.id
       } else {
         this.$refs['reserveList'].query.workTimeId = null
       }
@@ -160,10 +172,10 @@ export default {
     },
     // 某时段的套餐点击, 打开新增预约
     handleTermItemClick(termCode, workTime) {
-      console.log(termCode)
-      console.log(workTime)
-      const term = { code: termCode }
-      this.openReserve(workTime, term)
+      // console.log(termCode)
+      // console.log(workTime)
+      // const term = { code: termCode }
+      // this.openReserve(workTime, term)
     },
     // 处理新增预约事件
     handleAdd() {

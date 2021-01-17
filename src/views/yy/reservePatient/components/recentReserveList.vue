@@ -2,7 +2,7 @@
   <div class="recentReserveList-panel">
     <div class="panel-title-container">
       <div class="panel-title">最近预约列表</div>
-      <div class="panel-title-more">查看更多</div>
+      <div class="panel-title-more" @click="handleShowMore">查看更多</div>
     </div>
     <div class="list-outer">
       <div v-if="list && list.length > 0" class="list-container">
@@ -53,6 +53,10 @@ export default {
     this.loadPatientTermList()
   },
   methods: {
+    handleShowMore() {
+      const query = { patientName: this.patientTerm.patient.name }
+      this.$router.replace({ path: '/ptt/reserve', query })
+    },
     loadPatientTermList() {
       if (this.patientTerm && this.patientTerm.id) {
         getReserveListByPatientTermId(this.patientTerm.id).then(res => {

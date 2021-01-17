@@ -9,6 +9,8 @@
           :disabled="!showHeader"
           @change="handleHospitalChange"
         />
+        <el-date-picker v-model="query.date" type="date" value-format="yyyy-MM-dd" clearable size="small" class="filter-item" placeholder="选择日期" />
+        <el-input v-model="query.patientName" clearable size="small" placeholder="输入患者名称进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
         <rrOperation />
       </div>
       <crudOperation :permission="permission" />
@@ -97,12 +99,14 @@
     >
       <el-table-column type="selection" width="55" />
       <el-table-column label="医院" prop="dept.name" />
+      <el-table-column label="预约时间">
+        <template slot-scope="scope">
+          <div>{{ scope.row.date }} {{ scope.row.beginTime }}-{{ scope.row.endTime }}</div>
+        </template>
+      </el-table-column>
       <el-table-column label="患者" prop="patient.name" />
       <el-table-column label="套餐" prop="patientTerm.termName" />
       <el-table-column label="资源组" prop="resourceGroup.name" />
-      <el-table-column label="日期" prop="date" />
-      <el-table-column label="开始时间" prop="beginTime" />
-      <el-table-column label="结束时间" prop="endTime" />
       <el-table-column label="状态" prop="status">
         <template slot-scope="scope">
           <span v-if="scope.row.status !== ''">{{ dict.label.reserve_status[scope.row.status] }}</span>
@@ -133,6 +137,12 @@
                 @click="handleVerify(scope.row)"
               >核销</el-button>
               <el-button
+                v-if="scope.row.status === 'check_in'"
+                size="mini"
+                type="warning"
+                @click="handleCancel(scope.row)"
+              >作废</el-button>
+              <el-button
                 v-if="scope.row.status === 'verified'"
                 v-permission="permission.del"
                 size="mini"
@@ -140,6 +150,7 @@
                 @click="handleCancel(scope.row)"
               >作废</el-button>
               <el-button
+                v-show="false"
                 v-permission="permission.edit"
                 :loading="crud.status.cu === 2"
                 size="mini"
@@ -197,11 +208,12 @@ export default {
         date: null,
         workTimeId: null,
         termId: null,
-        patientTermId: null
+        patientTermId: null,
+        patientName: null
       },
       optShow: {
         add: true,
-        edit: true,
+        edit: false,
         del: false,
         download: true,
         reset: true
@@ -247,6 +259,8 @@ export default {
   watch: {
   },
   created() {
+    const { query } = this.$route
+    this.query.patientName = query.patientName
   },
   methods: {
     // 开始 "新建/编辑" - 之前

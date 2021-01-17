@@ -15,8 +15,8 @@
               <el-input v-model="query.patientInfo" clearable size="small" placeholder="输入查询条件" style="margin-left:10px; width: 200px;" />
             </div>
             <div class="buttons">
-              <el-button type="primary" @click="handleQuery">搜索</el-button>
-              <el-button type="primary" @click="handleQueryHis">HIS 搜索</el-button>
+              <el-button type="primary" @click="handleQuery">本地搜索</el-button>
+              <el-button type="primary" @click="handleQueryHis">HIS搜索</el-button>
             </div>
           </div>
           <div class="patientTermList">

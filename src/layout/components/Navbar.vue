@@ -5,7 +5,7 @@
     <breadcrumb id="breadcrumb-container" class="breadcrumb-container" />
 
     <div class="right-menu">
-      <template v-if="device!=='mobile'">
+      <template v-if="device!=='mobile' && 1!==1">
         <search id="header-search" class="right-menu-item" />
 
         <el-tooltip content="项目文档" effect="dark" placement="bottom">
@@ -28,7 +28,7 @@
           <i class="el-icon-caret-bottom" />
         </div>
         <el-dropdown-menu slot="dropdown">
-          <span style="display:block;" @click="show = true">
+          <span v-if="false" style="display:block;" @click="show = true">
             <el-dropdown-item>
               布局设置
             </el-dropdown-item>

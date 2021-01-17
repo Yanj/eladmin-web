@@ -1,6 +1,10 @@
 <template>
   <div class="dashboard-container">
     <div class="dashboard-editor-container">
+      <hospital-picker
+        :value="currentHospital"
+        @change="handleHospitalChange"
+      />
       <panel-group :value="todayCount" @handleSetLineChartData="handleSetLineChartData" />
       <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
         <line-chart :chart-data="lineChartData" />
@@ -30,6 +34,7 @@
 </template>
 
 <script>
+import hospitalPicker from '@/views/yy/hospital/hospitalPicker'
 import PanelGroup from './dashboard/PanelGroup'
 import LineChart from './dashboard/LineChart'
 import SingleLineChart from './dashboard/SingleLineChart'
@@ -42,6 +47,7 @@ import { getTodayCount, getWeekCount, getWorkTimeCount } from '@/api/yy/reserve'
 export default {
   name: 'Dashboard',
   components: {
+    hospitalPicker,
     PanelGroup,
     LineChart,
     SingleLineChart,
@@ -52,6 +58,7 @@ export default {
   data() {
     return {
       deptId: 32,
+      currentHospital: { id: null },
       todayCount: {
         totalCount: 0,
         preprocessCount: 0,
@@ -83,9 +90,6 @@ export default {
     }
   },
   mounted() {
-    this.getTodayCount()
-    this.getWeekCount()
-    this.getWorkTimeCount()
   },
   methods: {
     handleSetLineChartData(type) {
@@ -93,6 +97,14 @@ export default {
         actualData: this.weekCount[0][type],
         expectedData: this.weekCount[1][type]
       }
+    },
+    // 查询 - 选择医院事件
+    handleHospitalChange(val) {
+      this.currentHospital = val
+      this.deptId = val.id
+      this.getTodayCount()
+      this.getWeekCount()
+      this.getWorkTimeCount()
     },
     getTodayCount() {
       getTodayCount(this.deptId).then(res => {
@@ -112,7 +124,8 @@ export default {
       getWorkTimeCount(this.deptId).then(res => {
         this.workTimeCount = {
           workTimes: res.workTimes,
-          actualData: res.counts
+          actualData: res.counts,
+          expectedData: res.prevCounts
         }
       })
     }

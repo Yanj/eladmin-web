@@ -2,7 +2,7 @@ module.exports = {
   /**
    * @description 网站标题
    */
-  title: '成都新世纪妇幼保健院',
+  title: '成都新世纪妇女儿童医院',
   /**
    * @description 是否显示 tagsView
    */
@@ -34,7 +34,7 @@ module.exports = {
   /**
    * @description 是否显示logo
    */
-  sidebarLogo: true,
+  sidebarLogo: false,
   /**
    * 是否显示设置的底部信息
    */
@@ -42,9 +42,9 @@ module.exports = {
   /**
    * 底部文字，支持html语法
    */
-  footerTxt: '© 2020 成都新世纪妇幼保健院 <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License 2.0</a>',
+  footerTxt: '© 2020 成都新世纪妇女儿童医院 <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License 2.0</a>',
   /**
    * 备案号
    */
-  caseNumber: '浙ICP备18005431号'
+  caseNumber: '浙ICP备00000001号'
 }

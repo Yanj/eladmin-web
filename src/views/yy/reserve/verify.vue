@@ -78,7 +78,7 @@ export default {
   },
   methods: {
     handleClose() {
-      console.log('close')
+      this.dialogVisible = false
     },
     handleCancel() {
       this.dialogVisible = false
