@@ -142,13 +142,14 @@
                 type="warning"
                 @click="handleCancel(scope.row)"
               >作废</el-button>
-              <el-button
-                v-if="scope.row.status === 'verified'"
-                v-permission="permission.del"
-                size="mini"
-                type="danger"
-                @click="handleCancel(scope.row)"
-              >作废</el-button>
+              <span v-if="scope.row.status === 'verified'">
+                <el-button
+                  v-permission="permission.del"
+                  size="mini"
+                  type="danger"
+                  @click="handleCancel(scope.row)"
+                >作废</el-button>
+              </span>
               <el-button
                 v-show="false"
                 v-permission="permission.edit"
