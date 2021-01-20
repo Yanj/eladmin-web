@@ -4,6 +4,8 @@
       <label>日期: </label>
       <el-date-picker
         v-model="dateRange"
+        :clearable="false"
+        :picker-options="datePickOptions"
         type="daterange"
         size="mini"
         range-separator="至"
@@ -18,11 +20,7 @@
         v-model="startTime"
         size="mini"
         placeholder="起始时间"
-        :picker-options="{
-          start: '08:30',
-          step: '00:15',
-          end: '18:30'
-        }"
+        :picker-options="startTimePickOptions"
         style="width:120px"
         @change="handleStartTimeChange"
       />
@@ -30,17 +28,13 @@
         v-model="endTime"
         size="mini"
         placeholder="结束时间"
-        :picker-options="{
-          start: '08:30',
-          step: '00:15',
-          end: '18:30',
-          minTime: startTime
-        }"
+        :picker-options="endTimePickOptions"
         style="width:120px"
         @change="handleEndTimeChange"
       />
       <el-button type="primary" size="mini" style="margin-left: 10px" @click="handleFilter">过滤</el-button>
-      <el-button size="mini" style="margin-left: 10px" @click="handleClear">清空</el-button> </div>
+      <el-button size="mini" style="margin-left: 10px" @click="handleClear">清空</el-button>
+    </div>
     <el-table v-loading="loading" :data="tableData" :span-method="tableSpanMethod" :cell-class-name="tableCellClassMethod">
       <el-table-column label="日期" prop="date" align="center" />
       <el-table-column label="时段" align="center">
@@ -65,6 +59,8 @@
 <script>
 import { getAllResourceGroups } from '@/api/yy/resourceGroup'
 import { getReserveCountList } from '@/api/yy/reserveResource'
+import workTimeApi from '@/api/yy/workTime'
+import { getDate, formatDate } from '@/utils'
 
 export default {
   name: 'ReserveTime',
@@ -93,8 +89,27 @@ export default {
       tableData: [],
       originalTableData: [],
       loading: false,
+      defaultDateRange: [0, 0],
+      datePickOptions: {
+        disabledDate: function(date) {
+          return date.getTime() < this.defaultDateRange[0].getTime() || date.getTime() > this.defaultDateRange[1].getTime()
+        }
+      },
+      startTimePickOptions: {
+        start: '09:00',
+        step: '00:30',
+        end: '18:00',
+        maxTime: this.endTime
+      },
+      endTimePickOptions: {
+        start: '09:00',
+        step: '00:30',
+        end: '18:00',
+        minTime: this.startTime
+      },
       currentResourceGroups: [],
       dateRange: ['', ''],
+      defaultTimeRange: ['09:00', '18:00'],
       startTime: '',
       endTime: ''
     }
@@ -106,18 +121,41 @@ export default {
     term: function(val) {
       if (val) {
         this.currentResourceGroups = val.resourceGroups || []
+      } else {
+        this.currentResourceGroups = []
       }
     }
   },
   created() {
+    // 可选择范围, 最近 2 周内
+    this.defaultDateRange = [getDate(0), getDate(13)]
+    // 默认范围, 今天内
+    this.dateRange = [formatDate(getDate(0)), formatDate(getDate(0))]
     this.query.deptId = this.deptId
+    this.query.beginDate = this.dateRange[0]
+    this.query.endDate = this.dateRange[1]
   },
   mounted() {
     this.loadResourceGroups()
+    this.loadAllWorkTimes()
   },
   methods: {
+    // 加载所有工作时间
+    loadAllWorkTimes() {
+      workTimeApi.getAllByDeptId(this.query.deptId).then(res => {
+        if (res) {
+          this.defaultTimeRange = res
+          this.startTimePickOptions.start = res[0].beginTime || '09:00'
+          this.startTimePickOptions.end = res[res.length - 1].endTime || '18:00'
+          this.endTimePickOptions.start = res[0].beginTime || '09:00'
+          this.endTimePickOptions.end = res[res.length - 1].endTime || '18:00'
+        }
+      })
+    },
+    // 日期返回改变
     handleDateRangeChange(val) {
-      console.log(val)
+      // 刷新
+      this.handleFilter()
     },
     handleStartTimeChange(val) {
       console.log(val)

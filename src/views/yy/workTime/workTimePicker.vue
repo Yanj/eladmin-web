@@ -78,7 +78,7 @@ export default {
         return
       }
       getAllByDeptId(this.deptId).then(res => {
-        this.workTimes = res.content
+        this.workTimes = res
         // 如果没有查询, 则设置默认查询选项并查询列表
         if (this.workTimes.length > 0) {
           this.currentWorkTime = this.workTimes[0]

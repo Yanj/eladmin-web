@@ -82,8 +82,10 @@ export default {
         this.resourceCategories = res
         // 如果没有查询, 则设置默认查询选项并查询列表
         if (this.resourceCategories.length > 0) {
-          this.currentResourceCategory = this.resourceCategories[0]
-          this.handleResourceCategoryChange(this.currentResourceCategory)
+          if (!this.currentResourceCategory) {
+            this.currentResourceCategory = this.resourceCategories[0]
+            this.handleResourceCategoryChange(this.currentResourceCategory)
+          }
         }
       })
     },

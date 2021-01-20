@@ -12,20 +12,23 @@
       <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
         <single-line-chart :chart-data="workTimeCount" />
       </el-row>
+      <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
+        <bar-chart :term-count="termCount" />
+      </el-row>
       <el-row v-show="false" :gutter="32">
-        <el-col :xs="24" :sm="24" :lg="8">
+        <el-col v-show="false" :xs="24" :sm="24" :lg="8">
           <div class="chart-wrapper">
             <radar-chart />
           </div>
         </el-col>
-        <el-col :xs="24" :sm="24" :lg="8">
+        <el-col v-show="false" :xs="24" :sm="24" :lg="8">
           <div class="chart-wrapper">
             <pie-chart />
           </div>
         </el-col>
-        <el-col :xs="24" :sm="24" :lg="8">
+        <el-col v-show="false" :xs="24" :sm="24" :lg="8">
           <div class="chart-wrapper">
-            <bar-chart />
+            <bar-chart :term-count="termCount" />
           </div>
         </el-col>
       </el-row>
@@ -40,9 +43,12 @@ import LineChart from './dashboard/LineChart'
 import SingleLineChart from './dashboard/SingleLineChart'
 import RadarChart from '@/components/Echarts/RadarChart'
 import PieChart from '@/components/Echarts/PieChart'
-import BarChart from '@/components/Echarts/BarChart'
+// import BarChart from '@/components/Echarts/BarChart'
+import BarChart from '@/views/dashboard/BarChart'
 
-import { getTodayCount, getWeekCount, getWorkTimeCount } from '@/api/yy/reserve'
+import { getTodayCount, getWeekCount, getWorkTimeCount, getTermCount } from '@/api/yy/reserve'
+
+import { getWeekDate, formatDate } from '@/utils'
 
 export default {
   name: 'Dashboard',
@@ -86,6 +92,10 @@ export default {
       workTimeCount: {
         workTimes: ['08:00', '08:30', '09:00'],
         actualData: [0, 0, 0]
+      },
+      termCount: {
+        dates: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+        data: []
       }
     }
   },
@@ -105,6 +115,7 @@ export default {
       this.getTodayCount()
       this.getWeekCount()
       this.getWorkTimeCount()
+      this.getTermCount()
     },
     getTodayCount() {
       getTodayCount(this.deptId).then(res => {
@@ -126,6 +137,20 @@ export default {
           workTimes: res.workTimes,
           actualData: res.counts,
           expectedData: res.prevCounts
+        }
+      })
+    },
+    getTermCount() {
+      const monday = formatDate(getWeekDate(0))
+      const params = {
+        deptId: this.deptId,
+        date: monday,
+        days: 7
+      }
+      getTermCount(params).then(res => {
+        this.termCount = {
+          dates: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+          data: res
         }
       })
     }

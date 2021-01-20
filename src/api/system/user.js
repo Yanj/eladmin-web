@@ -57,5 +57,12 @@ export function updateEmail(form) {
   })
 }
 
+export function getByDeptId(deptId) {
+  return request({
+    url: 'api/users/dept/' + deptId,
+    method: 'get'
+  })
+}
+
 export default { add, edit, del }
 

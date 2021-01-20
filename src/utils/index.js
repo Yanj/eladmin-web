@@ -89,6 +89,48 @@ export function parseTime(time, cFormat) {
   return time_str
 }
 
+const dayOffset = 24 * 60 * 60 * 1000
+
+export function getWeekDate(offset) {
+  const date = new Date()
+  const day = date.getDay() - 1 // 因为周日是第 0 天, 为了让周一是第 0 天, 减1
+  return getDate(-day + offset)
+}
+
+export function getDate(offset) {
+  const date = new Date()
+  date.setHours(0)
+  date.setMinutes(0)
+  date.setSeconds(0)
+  date.setMilliseconds(0)
+  date.setTime(date.getTime() + offset * dayOffset)
+  return date
+}
+
+export function formatDate(date, separator) {
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+
+  const format = function(n, c) {
+    let res = ''
+    for (let i = c - 1; i >= 0; i--) {
+      let r
+      if (n <= 0) {
+        r = 0
+      } else {
+        const p = Math.pow(10, i)
+        r = Math.floor(n / p)
+        n -= r * p
+      }
+      res += r
+    }
+    return res
+  }
+  separator = separator || '-'
+  return format(year, 4) + separator + format(month, 2) + separator + format(day, 2)
+}
+
 /**
  * @param {number} time
  * @param {string} option

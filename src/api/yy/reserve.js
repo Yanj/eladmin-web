@@ -111,4 +111,12 @@ export function getWorkTimeCount(deptId) {
   })
 }
 
+export function getTermCount(params) {
+  return request({
+    url: 'api/yy/reserve/termCount',
+    method: 'get',
+    params
+  })
+}
+
 export default { add, addList, edit, del, verify, checkIn, cancel, getResourceGroup }

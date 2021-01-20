@@ -26,7 +26,7 @@ export function edit(data) {
 
 export function getAllByDeptId(deptId) {
   return request({
-    url: 'api/yy/workTime',
+    url: 'api/yy/workTime/list',
     method: 'get',
     params: {
       deptId
@@ -34,4 +34,4 @@ export function getAllByDeptId(deptId) {
   })
 }
 
-export default { add, edit, del }
+export default { add, edit, del, getAllByDeptId }

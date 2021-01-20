@@ -17,6 +17,11 @@
           <el-option v-for="resource in item.resourceCategory.resources" :key="resource.id" :label="resource.name" :value="resource" />
         </el-select>
       </el-form-item>
+      <el-form-item label="操作者">
+        <el-select v-model="currentUser" value-key="id">
+          <el-option v-for="user in users" :key="user.id" :label="user.nickName" :value="user" />
+        </el-select>
+      </el-form-item>
     </el-form>
     <!--按钮组-->
     <span slot="footer" class="dialog-footer">
@@ -28,6 +33,8 @@
 
 <script>
 import reserveApi from '@/api/yy/reserve'
+import { getByDeptId } from '@/api/system/user'
+import store from '@/store'
 
 export default {
   name: 'Verify',
@@ -55,6 +62,8 @@ export default {
     return {
       dialogVisible: false,
       currentReserve: this.value,
+      users: [],
+      currentUser: null,
       form: {
         id: null,
         resourceGroup: { id: null },
@@ -73,6 +82,13 @@ export default {
     dialogVisible: function(val) {
       if (val) {
         this.loadResourceGroup()
+        this.loadUsers()
+        store.dispatch('GetInfo').then((res) => {
+          console.log(res)
+          if (res) {
+            this.currentUser = res.user
+          }
+        })
       }
     }
   },
@@ -85,7 +101,7 @@ export default {
     },
     handleConfirm() {
       this.dialogVisible = false
-      this.$emit('change', this.form)
+      this.$emit('change', { ...this.form, operator: this.currentUser })
     },
     // 加载预约的资源组
     loadResourceGroup() {
@@ -114,6 +130,14 @@ export default {
             }
             this.form.reserveResources.push(obj)
           }
+        }
+      })
+    },
+    // 加载部门用户
+    loadUsers() {
+      getByDeptId(this.currentReserve.dept.id).then(res => {
+        if (res) {
+          this.users = res
         }
       })
     }
