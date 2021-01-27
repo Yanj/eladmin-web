@@ -60,7 +60,6 @@ import PatientTermList from './components/patientTermList'
 import ReserveTime from './components/reserveTime'
 import ReserveList from './components/reserveList'
 import RecentReserveList from './components/recentReserveList'
-import CRUD from '@crud/crud'
 
 export default {
   name: 'ReservePatient',
@@ -245,8 +244,7 @@ export default {
       this.reserveSavingLoading = true
       console.log(this.reserveList)
       reserveApi.addList(this.reserveList).then(res => {
-        this.crud.notify('预约成功', CRUD.NOTIFICATION_TYPE.SUCCESS)
-        console.log(res)
+        this.$message('预约成功')
         // 重新加载
         this.reload()
       }).finally(() => {

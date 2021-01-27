@@ -91,7 +91,7 @@ export default {
       loading: false,
       defaultDateRange: [0, 0],
       datePickOptions: {
-        disabledDate: function(date) {
+        disabledDate: (date) => {
           return date.getTime() < this.defaultDateRange[0].getTime() || date.getTime() > this.defaultDateRange[1].getTime()
         }
       },

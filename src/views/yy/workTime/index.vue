@@ -23,9 +23,9 @@
             v-model="form.beginTime"
             placeholder="开始时间"
             :picker-options="{
-              start: '08:00',
-              step: '00:15',
-              end: '18:30'
+              start: '09:00',
+              step: '00:10',
+              end: '18:00'
             }"
             style="width: 370px;"
           />
@@ -35,9 +35,9 @@
             v-model="form.endTime"
             placeholder="结束时间"
             :picker-options="{
-              start: '08:00',
-              step: '00:15',
-              end: '18:30'
+              start: '09:00',
+              step: '00:10',
+              end: '18:00'
             }"
             style="width: 370px;"
           />

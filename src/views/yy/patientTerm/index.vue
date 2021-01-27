@@ -57,7 +57,7 @@
           <el-input v-model="form.termUnit" :disabled="true" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="实际支付" prop="editPrice">
-          <currency-input v-model="form.editPrice" style="width: 370px;" />
+          <currency-input v-model="form.editPrice" :disabled="true" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="剩余次数" prop="times">
           <el-input-number v-model.number="form.times" :min="0" :max="999" controls-position="right" style="width: 370px;" />
@@ -84,6 +84,7 @@
       @current-change="handleCurrentChange"
     >
       <el-table-column type="selection" width="55" />
+      <el-table-column label="购买ID" prop="patItemId" />
       <el-table-column label="患者" prop="patient.name" />
       <el-table-column label="套餐编码" prop="termCode" />
       <el-table-column label="套餐名称" prop="termName" />
@@ -306,10 +307,10 @@ export default {
       if (this.crud.selections.length === 1) {
         const sel = this.crud.selections[0]
         console.log(sel)
-        if (!sel.parent && (!sel.freeTimes || sel.freeTimes < 1)) {
+        if (sel.patItemId && (!sel.freeTimes || sel.freeTimes < 1)) {
           canAddFreeOne = true
         }
-        if (!sel.parent && (!sel.freeTimes || sel.freeTimes < 2)) {
+        if (sel.patItemId && (!sel.freeTimes || sel.freeTimes < 2)) {
           canAddFreeTwo = true
         }
       }
