@@ -29,7 +29,7 @@
           />
         </el-form-item>
         <el-form-item label="顶级部门">
-          <el-radio-group v-model="form.isTop" style="width: 140px">
+          <el-radio-group v-model="form.isTop" style="width: 140px" :disabled="!enableAddRoot">
             <el-radio label="1">是</el-radio>
             <el-radio label="0">否</el-radio>
           </el-radio-group>
@@ -105,7 +105,7 @@ import crudOperation from '@crud/CRUD.operation'
 import udOperation from '@crud/UD.operation'
 import DateRangePicker from '@/components/DateRangePicker'
 
-const defaultForm = { id: null, name: null, isTop: '1', subCount: 0, pid: null, deptSort: 999, enabled: 'true' }
+const defaultForm = { id: null, name: null, isTop: '0', subCount: 0, pid: null, deptSort: 999, enabled: 'true' }
 export default {
   name: 'Dept',
   components: { Treeselect, crudOperation, rrOperation, udOperation, DateRangePicker },
@@ -134,7 +134,8 @@ export default {
       enabledTypeOptions: [
         { key: 'true', display_name: '正常' },
         { key: 'false', display_name: '禁用' }
-      ]
+      ],
+      enableAddRoot: false
     }
   },
   methods: {
@@ -202,6 +203,14 @@ export default {
           }, 100)
         })
       }
+    },
+    // 新增前操作
+    [CRUD.HOOK.beforeToAdd]() {
+      crudDept.getRoot().then(res => {
+        this.enableAddRoot = !res || res.length === 0
+      }).catch((e) => {
+        console.error(e)
+      })
     },
     // 提交前的验证
     [CRUD.HOOK.afterValidateCU]() {

@@ -41,4 +41,11 @@ export function edit(data) {
   })
 }
 
-export default { add, edit, del, getDepts, getDeptSuperior }
+export function getRoot() {
+  return request({
+    url: 'api/dept/root',
+    method: 'get'
+  })
+}
+
+export default { add, edit, del, getDepts, getDeptSuperior, getRoot }
