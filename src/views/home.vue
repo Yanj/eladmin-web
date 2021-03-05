@@ -7,6 +7,9 @@
       />
       <panel-group :value="todayCount" @handleSetLineChartData="handleSetLineChartData" />
       <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
+        <bar-horizental-chart :height="termHorizentalHeight" :terms="termHorizentalCount" :title="{text:'预约统计',subtext:'最近一周预约统计'}" />
+      </el-row>
+      <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
         <line-chart :chart-data="lineChartData" />
       </el-row>
       <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
@@ -45,6 +48,7 @@ import RadarChart from '@/components/Echarts/RadarChart'
 import PieChart from '@/components/Echarts/PieChart'
 // import BarChart from '@/components/Echarts/BarChart'
 import BarChart from '@/views/dashboard/BarChart'
+import BarHorizentalChart from '@/views/dashboard/BarHorizentalChart'
 
 import { getTodayCount, getWeekCount, getWorkTimeCount, getTermCount } from '@/api/yy/reserve'
 
@@ -59,7 +63,8 @@ export default {
     SingleLineChart,
     RadarChart,
     PieChart,
-    BarChart
+    BarChart,
+    BarHorizentalChart
   },
   data() {
     return {
@@ -95,6 +100,11 @@ export default {
       },
       termCount: {
         dates: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+        data: []
+      },
+      termHorizentalHeight: '600px',
+      termHorizentalCount: {
+        names: [], // 套餐名称
         data: []
       }
     }
@@ -151,6 +161,35 @@ export default {
         this.termCount = {
           dates: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
           data: res
+        }
+
+        const names = []
+        for (let i = 0; i < res.length; i++) {
+          names.push(res[i].name)
+        }
+
+        const data = []
+        const legend = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+        for (let i = 0; i < legend.length; i++) {
+          const arr = []
+          for (let j = 0; j < res.length; j++) {
+            arr.push(res[j].data[i])
+          }
+          data.push({
+            name: legend[i],
+            data: arr
+          })
+        }
+        this.termHorizentalCount = {
+          legend,
+          names,
+          data
+        }
+        console.log(this.termHorizentalCount)
+        if (names.length <= 6) {
+          this.termHorizentalHeight = '600px'
+        } else {
+          this.termHorizentalHeight = ((names.length - 1) * 50) + 'px'
         }
       })
     }
