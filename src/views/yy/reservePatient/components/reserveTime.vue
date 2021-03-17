@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="reserve-time-wrapper">
     <div class="filter-container" style="margin-bottom: 10px;">
       <label>日期: </label>
       <el-date-picker
@@ -352,13 +352,14 @@ export default {
 }
 .resourceGroup-disabled {
 }
-.el-range-editor .el-range-separator {
+
+.reserve-time-wrapper .el-range-editor .el-range-separator {
   padding: 0;
 }
-.el-table--small th, .el-table--small td {
+.reserve-time-wrapper .el-table--small th, .reserve-time-wrapper .el-table--small td {
   padding: 0;
 }
-.el-table .cell {
+.reserve-time-wrapper .el-table .cell {
   padding: 0;
 }
 </style>
