@@ -45,7 +45,7 @@
       </el-table-column>
       <el-table-column v-for="item in resourceGroups" :key="item.id" :label="item.name" align="center">
         <template slot-scope="scope">
-          <div style="background: #00000000;" @click.stop="handleResourceClick({resourceGroup: item, date: scope.row.date, workTime: scope.row.workTime, index: scope.$index})">
+          <div style="background: #00000000;width:100%;height:100%;padding: 8px 12px;" @click.stop="handleResourceClick({resourceGroup: item, date: scope.row.date, workTime: scope.row.workTime, index: scope.$index}, scope.row)">
             <label :class="scope.row.usedMap[item.id+''] !== originalTableData[scope.$index].usedMap[item.id+''] ? 'resourceGroup-count-changed': ''">{{ scope.row.usedMap[item.id+''] }}</label>
             <label>/</label>
             <label :class="scope.row.leftMap[item.id+''] === 0 ? 'resourceGroup-disabled':''">{{ scope.row.countMap[item.id+''] }}</label>
@@ -181,7 +181,7 @@ export default {
       this.loadReserveCountList()
     },
     // 单元格点击事件
-    handleResourceClick(obj) {
+    handleResourceClick(obj, row) {
       if (this.term) {
         const resourceGroups = this.term.resourceGroups || []
         let index = -1
@@ -192,7 +192,13 @@ export default {
           }
         }
         if (index !== -1) {
-          this.$emit('on-item-click', obj)
+          const id = obj.resourceGroup.id + ''
+          const changed = row.usedMap[id] !== this.originalTableData[obj.index].usedMap[id]
+          const hasLeft = row.leftMap[id] !== 0
+          console.log(':' + changed + ',' + hasLeft)
+          if (changed || hasLeft) {
+            this.$emit('on-item-click', obj)
+          }
         } else {
           const resourceGroups = this.term.resourceGroups || []
           const names = []
@@ -261,12 +267,17 @@ export default {
         }
         for (let i = 0; i < this.currentResourceGroups.length; i++) {
           if (resourceGroupId === this.currentResourceGroups[i].id) {
+            // 没有预约次数的时候, 修改样式
             if (row.leftMap[resourceGroupId] === 0) {
-              return 'resourceGroup-disable'
+              return 'resourceGroup-no-left'
             } else {
               return 'resourceGroup-available'
             }
           }
+        }
+        // 没有预约次数的时候, 修改样式
+        if (row.leftMap[resourceGroupId] === 0) {
+          return 'resourceGroup-no-left'
         }
         return 'resourceGroup-disable'
       }
@@ -326,7 +337,11 @@ export default {
 }
 .el-table .el-table__body .el-table__row td.resourceGroup-disable {
   background-color: #33000000;
-  color: #DDD;
+  color: #333;
+}
+.el-table .el-table__body .el-table__row td.resourceGroup-no-left {
+  background-color: #ff3333;
+  color: white;
 }
 .el-table .el-table__body .el-table__row td.resourceGroup-used {
   background-color: deepskyblue;
@@ -338,6 +353,12 @@ export default {
 .resourceGroup-disabled {
 }
 .el-range-editor .el-range-separator {
+  padding: 0;
+}
+.el-table--small th, .el-table--small td {
+  padding: 0;
+}
+.el-table .cell {
   padding: 0;
 }
 </style>

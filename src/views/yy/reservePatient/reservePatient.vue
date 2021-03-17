@@ -19,6 +19,19 @@
               <el-button type="primary" @click="handleQueryHis">HIS搜索</el-button>
             </div>
           </div>
+          <div class="patientInfo">
+            <div class="panel-title">患者信息</div>
+            <div class="panel-content">
+              <div class="patient-info-item">
+                <label>患者信息:</label>
+                <el-input v-model="patient.name" size="small" :disabled="true" />
+              </div>
+              <div class="patient-info-item">
+                <label>联系电话:</label>
+                <el-input v-model="patient.phone" size="small" :disabled="true" />
+              </div>
+            </div>
+          </div>
           <div class="patientTermList">
             <patient-term-list ref="patientTermList" :patient-id="patient.id" @change="handlePatientTermChange" />
           </div>
@@ -272,6 +285,38 @@ export default {
       .buttons {
         .el-button {
           margin-right: 10px;
+        }
+      }
+    }
+    .patientInfo {
+      .panel-title {
+        width: 100%;
+        padding: 8px 10px;
+        line-height: 23px;
+        color: #909399;
+        font-size: 12px;
+      }
+      .panel-content {
+        border: 1px solid #DDDDDD;
+        border-width: 1px 0;
+        padding: 10px 10px;
+        box-sizing: border-box;
+        display: flex;
+        .patient-info-item {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          label {
+            font-size: 13px;
+            font-weight: normal;
+            width: 20%;
+            text-align: right;
+            padding-right: 10px;
+            box-sizing: border-box;
+          }
+          .el-input {
+            width: 80%;
+          }
         }
       }
     }
