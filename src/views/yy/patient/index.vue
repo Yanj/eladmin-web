@@ -11,21 +11,41 @@
     </div>
     <!--表单组件-->
     <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="500px">
-      <el-form ref="form" inline :model="form" :rules="rules" size="small" label-width="80px">
-        <el-form-item label="名称" prop="name">
+      <el-form ref="form" inline :model="form" size="small" label-width="80px">
+        <el-form-item label="来源" prop="source">
+          <el-select v-model="form.source" style="width: 370px;" @change="handleSourceChange">
+            <el-option v-for="item in dict.patient_source" :key="item.id" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="!isSourceExternal" :rules="[{ required: true, message: '请输入外部系统ID', trigger: 'blur' }]" label="外部系统ID" prop="code">
+          <el-input v-model="form.code" style="width: 370px;" />
+        </el-form-item>
+        <el-form-item :rules="[{ required: true, message: '请输入名称', trigger: 'blur' }]" label="名称" prop="name">
           <el-input v-model="form.name" style="width: 370px;" />
         </el-form-item>
-        <el-form-item label="档案号" prop="mrn">
+        <el-form-item v-if="!isSourceExternal" :rules="[{ required: true, message: '请输入档案号', trigger: 'blur' }]" label="档案号" prop="mrn">
           <el-input v-model="form.mrn" style="width: 370px;" />
         </el-form-item>
-        <el-form-item label="电话" prop="phone">
+        <el-form-item :rules="[{ required: true, message: '请输入手机号', trigger: 'blur' },{ type: 'string', len: 11, message: '请输入正确的手机号'}]" label="手机号" prop="phone">
           <el-input v-model="form.phone" style="width: 370px;" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-input v-model="form.status" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" style="width: 370px;" />
+        </el-form-item>
+        <el-form-item label="自定义1" prop="col1">
+          <el-input v-model="form.col1" style="width: 370px;" />
+        </el-form-item>
+        <el-form-item label="自定义2" prop="col2">
+          <el-input v-model="form.col2" style="width: 370px;" />
+        </el-form-item>
+        <el-form-item label="自定义3" prop="col3">
+          <el-input v-model="form.col3" style="width: 370px;" />
+        </el-form-item>
+        <el-form-item label="自定义4" prop="col4">
+          <el-input v-model="form.col4" style="width: 370px;" />
+        </el-form-item>
+        <el-form-item label="自定义5" prop="col5">
+          <el-input v-model="form.col5" style="width: 370px;" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -46,10 +66,20 @@
       @current-change="handleCurrentChange"
     >
       <el-table-column type="selection" width="55" />
-      <el-table-column label="名称" prop="name" />
-      <el-table-column label="档案号" prop="mrn" />
-      <el-table-column label="电话" prop="phone" />
-      <el-table-column label="状态" prop="status" />
+      <el-table-column label="外部系统ID" prop="code" width="100" />
+      <el-table-column label="来源" prop="source" width="100">
+        <template slot-scope="scope">
+          <text>{{ dict.label.patient_source[scope.row.source] }}{{ scope.row.source }}</text>
+        </template>
+      </el-table-column>
+      <el-table-column label="名称" prop="name" width="100" />
+      <el-table-column label="档案号" prop="mrn" width="100" />
+      <el-table-column label="手机号" prop="phone" width="100" />
+      <el-table-column label="自定义1" prop="col1" />
+      <el-table-column label="自定义2" prop="col2" />
+      <el-table-column label="自定义3" prop="col3" />
+      <el-table-column label="自定义4" prop="col4" />
+      <el-table-column label="自定义5" prop="col5" />
       <el-table-column label="备注" prop="remark" />
       <el-table-column v-permission="['admin','patient:edit','patient:del']" label="操作" width="130px" align="center" fixed="right">
         <template slot-scope="scope">
@@ -77,12 +107,19 @@ import pagination from '@crud/Pagination'
 
 const defaultForm = {
   id: null,
+  source: null,
+  code: null,
   name: null,
   mrn: null,
   phone: null,
-  status: null,
-  remark: null
+  remark: null,
+  col1: null,
+  col2: null,
+  col3: null,
+  col4: null,
+  col5: null
 }
+const defaultSource = 'HIS'
 export default {
   name: 'Patient',
   components: { crudOperation, rrOperation, udOperation, pagination },
@@ -90,12 +127,13 @@ export default {
     return CRUD({
       title: '患者管理',
       url: 'api/yy/patient',
-      query: { blurry: null, mrn: null, name: null, phone: null },
+      query: { blurry: null, mrn: null, name: null, phone: null, status: '1' },
       queryOnPresenterCreated: false,
       crudMethod: { ...crudApi }
     })
   },
   mixins: [presenter(), header(), form(defaultForm), crud()],
+  dicts: ['patient_status', 'patient_source'],
   props: {
     showHeader: {
       type: Boolean,
@@ -103,23 +141,19 @@ export default {
     }
   },
   data() {
+    const currentSource = defaultSource
     return {
-      rules: {
-        name: [
-          { required: true, message: '请输入名称', trigger: 'blur' }
-        ],
-        mrn: [
-          { required: true, message: '请输入档案号', trigger: 'blur' }
-        ],
-        phone: [
-          { required: true, message: '请输入电话', trigger: 'blur' }
-        ]
-      },
       permission: {
         add: ['admin', 'patient:add'],
         edit: ['admin', 'patient:edit'],
         del: ['admin', 'patient:del']
-      }
+      },
+      currentSource: currentSource
+    }
+  },
+  computed: {
+    isSourceExternal: function() {
+      return this.currentSource !== defaultSource
     }
   },
   created() {
@@ -133,6 +167,13 @@ export default {
     // 刷新之后
     [CRUD.HOOK.afterRefresh](crud) {
       this.$emit('after-refresh', crud)
+    },
+    // 新增与编辑前做的操作
+    [CRUD.HOOK.afterToCU](crud, form) {
+      if (!form.id) {
+        form.source = defaultSource
+        this.currentSource = defaultSource
+      }
     },
     // 提交前的验证
     [CRUD.HOOK.afterValidateCU]() {
@@ -160,6 +201,9 @@ export default {
           break
         }
       }
+    },
+    handleSourceChange(v) {
+      this.currentSource = v
     }
   }
 }
