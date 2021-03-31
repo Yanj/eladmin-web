@@ -48,4 +48,11 @@ export function getRoot() {
   })
 }
 
-export default { add, edit, del, getDepts, getDeptSuperior, getRoot }
+export function getTree() {
+  return request({
+    url: 'api/dept/tree',
+    method: 'get'
+  })
+}
+
+export default { add, edit, del, getDepts, getDeptSuperior, getRoot, getTree }

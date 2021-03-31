@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { getAllResourceCategories } from '@/api/yy/resourceCategory'
+import { getAllResourceCategories } from '@/api/patientReserve/resourceCategory'
 
 export default {
   name: 'ResourceCategoryPicker',

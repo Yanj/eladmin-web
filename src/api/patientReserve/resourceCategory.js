@@ -31,6 +31,14 @@ export function get(id) {
   })
 }
 
+export function editResourceGroup(data) {
+  return request({
+    url: 'api/yy/resourceCategory/resourceGroup',
+    method: 'put',
+    data
+  })
+}
+
 export function getAllResourceCategories(params) {
   return request({
     url: 'api/yy/resourceCategory?paged=false',
@@ -39,25 +47,10 @@ export function getAllResourceCategories(params) {
   })
 }
 
-export function getResourceCategoriesTree(pid, deptId) {
-  return request({
-    url: 'api/yy/resourceCategory/lazy?pid=' + pid + '&deptId=' + deptId,
-    method: 'get'
-  })
-}
-
 export function getChild(id) {
   return request({
     url: 'api/yy/resourceCategory/child?id=' + id,
     method: 'get'
-  })
-}
-
-export function editResourceGroup(data) {
-  return request({
-    url: 'api/yy/resourceCategory/resourceGroup',
-    method: 'put',
-    data
   })
 }
 

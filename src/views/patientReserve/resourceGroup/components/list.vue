@@ -4,9 +4,7 @@
     <div class="head-container">
       <div v-if="crud.props.searchToggle">
         <!-- 搜索 -->
-        <el-input v-if="hasAdminPermission" v-model="query.orgId" clearable size="small" placeholder="输入组织ID进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
-        <el-input v-if="hasAdminPermission" v-model="query.comId" clearable size="small" placeholder="输入医院ID进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
-        <el-input v-if="hasAdminPermission" v-model="query.deptId" clearable size="small" placeholder="输入部门ID进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <dept-picker v-if="hasAdminPermission" @change="handleDeptChange" />
         <el-input v-model="query.blurry" clearable size="small" placeholder="名称搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
         <el-select v-if="hasAdminPermission" v-model="query.status" clearable size="small" placeholder="选择状态搜索" style="width: 150px;" class="filter-item" @change="crud.toQuery">
           <el-option v-for="item in dict.resource_group_status" :key="item.id" :label="item.label" :value="item.value" />
@@ -18,14 +16,8 @@
     <!--表单组件-->
     <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="500px">
       <el-form ref="form" inline :model="form" :rules="rules" size="small" label-width="80px">
-        <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请输入组织ID', trigger:'blur'}]" label="组织ID">
-          <el-input v-model="form.orgId" :disabled="disableEdit" style="width: 370px;" />
-        </el-form-item>
-        <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请输入医院ID', trigger:'blur'}]" label="医院ID">
-          <el-input v-model="form.comId" :disabled="disableEdit" style="width: 370px;" />
-        </el-form-item>
-        <el-form-item v-if="hasAdminPermission" label="部门ID">
-          <el-input v-model="form.deptId" :disabled="disableEdit" style="width: 370px;" />
+        <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请选择部门', trigger:'blur'}]" label="部门">
+          <dept-picker v-model="formDept" width="370" :disabled="disableEdit" />
         </el-form-item>
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" style="width: 370px;" />
@@ -44,8 +36,9 @@
         <el-button :loading="crud.status.cu === 2" type="primary" @click="crud.submitCU">确认</el-button>
       </div>
     </el-dialog>
-    <div style="display:flex;">
-      <div style="flex:3">
+    <!--表格组件-->
+    <el-row :gutter="10">
+      <el-col :span="hasRight ? 16 : 24">
         <el-card class="box-card" shadow="never">
           <div slot="header" class="clearfix">
             <span class="role-span">资源分组列表</span>
@@ -86,46 +79,16 @@
           <!--分页组件-->
           <pagination />
         </el-card>
-      </div>
-      <div v-permission="permission.editResourceCategory" style="flex:2;margin-left:10px;">
-        <el-card class="box-card" shadow="never">
-          <div slot="header" class="clearfix">
-            <el-tooltip class="item" effect="dark" content="选择指定分类关联分组" placement="top">
-              <span class="role-span">分类关联</span>
-            </el-tooltip>
-            <el-button
-              v-permission="['admin','resourceCategory:edit']"
-              :disabled="!showButton"
-              :loading="resourceCategoryLoading"
-              icon="el-icon-check"
-              size="mini"
-              style="float: right; padding: 6px 9px"
-              type="primary"
-              @click="saveResourceCategory"
-            >保存</el-button>
-          </div>
-          <el-tree
-            ref="resourceCategory"
-            lazy
-            :data="resourceCategories"
-            :default-checked-keys="resourceCategoryIds"
-            :load="getResourceCategoryDatas"
-            :props="defaultProps"
-            check-strictly
-            accordion
-            show-checkbox
-            node-key="id"
-            @check="resourceCategoryChange"
-          />
-        </el-card>
-      </div>
-    </div>
+      </el-col>
+      <el-col v-if="hasRight" :span="8">
+        <slot name="right" />
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script>
-import crudApi from '@/api/yy/resourceGroup'
-import { getAllResourceCategories, getChild } from '@/api/yy/resourceCategory'
+import crudApi from '@/api/patientReserve/resourceGroup'
 
 import CRUD, { presenter, header, form, crud } from '@crud/crud'
 import rrOperation from '@crud/RR.operation'
@@ -133,6 +96,7 @@ import crudOperation from '@crud/CRUD.operation'
 import udOperation from '@crud/UD.operation'
 import pagination from '@crud/Pagination'
 import { hasAdminPermission } from '@/components/YyDept'
+import deptPicker from '@/views/patientReserve/components/deptPicker'
 
 const defaultForm = {
   id: null,
@@ -144,8 +108,8 @@ const defaultForm = {
   remark: null
 }
 export default {
-  name: 'ResourceGroup',
-  components: { crudOperation, rrOperation, udOperation, pagination },
+  name: 'ResourceGroupList',
+  components: { crudOperation, rrOperation, udOperation, pagination, deptPicker },
   cruds() {
     return CRUD({
       title: '资源分组管理',
@@ -157,6 +121,12 @@ export default {
   },
   mixins: [presenter(), header(), form(defaultForm), crud(), hasAdminPermission()],
   dicts: ['resource_group_status'],
+  props: {
+    hasRight: {
+      type: Boolean,
+      default: false
+    }
+  },
   data() {
     return {
       rules: {
@@ -170,23 +140,20 @@ export default {
         del: ['admin', 'resourceGroup:del'],
         editResourceCategory: ['admin', 'resourceGroup:editResourceCategory']
       },
-      defaultProps: { children: 'children', label: 'name', isLeaf: 'leaf' },
-      showButton: false,
-      resourceCategories: [],
-      resourceCategoryIds: [],
-      currentId: 0,
-      resourceCategoryLoading: false,
-      disableEdit: false
+      disableEdit: false,
+      formDept: {
+        orgId: null,
+        comId: null,
+        deptId: null
+      }
     }
   },
   methods: {
-    getResourceCategoryDatas(node, resolve) {
-      // setTimeout(() => {
-      //   const deptId = this.currentHospital ? this.currentHospital.id : 0
-      //   getResourceCategoriesTree(node.data.id ? node.data.id : 0, deptId).then(res => {
-      //     resolve(res)
-      //   })
-      // }, 100)
+    handleDeptChange(dept) {
+      this.query.orgId = dept.orgId
+      this.query.comId = dept.comId
+      this.query.deptId = dept.deptId
+      this.crud.toQuery()
     },
     // 新增与编辑前做的操作
     [CRUD.HOOK.afterToCU](crud, form) {
@@ -195,85 +162,51 @@ export default {
       } else { // 编辑
         this.disableEdit = true
       }
+      this.formDept = {
+        orgId: form.orgId,
+        comId: form.comId,
+        deptId: form.deptId
+      }
     },
     // 提交前的验证
     [CRUD.HOOK.afterValidateCU]() {
+      this.form.orgId = this.formDept.orgId
+      this.form.comId = this.formDept.comId
+      this.form.deptId = this.formDept.deptId
       return true
     },
     // 刷新之后
     [CRUD.HOOK.afterRefresh](crud) {
-      console.log(1)
-      console.log(crud.page)
-      if (crud.page.page === 1) {
-        // 刷新 tree
-        this.getResourceCategories()
-      }
-      return true
+      this.$emit('after-refresh', crud.page.page === 1)
     },
     handleCurrentChange(val) {
-      if (val) {
-        const _this = this
-        // 清空分组的选中
-        this.$refs.resourceCategory.setCheckedKeys([])
-        // 保存当前的分类id
-        this.currentId = val.id
-        // 初始化默认选中的key
-        this.resourceCategoryIds = []
-        val.resourceCategories.forEach(function(data) {
-          _this.resourceCategoryIds.push(data.id)
-        })
-        this.showButton = true
-      }
-    },
-    getResourceCategories() {
-      getAllResourceCategories({ orgId: this.query.orgId, comId: this.query.comId, deptId: this.query.deptId }).then(res => {
-        this.resourceCategories = res.content
-      })
-    },
-    resourceCategoryChange(resourceCategoryChange) {
-      // 获取该节点的所有子节点，id 包含自身
-      getChild(resourceCategoryChange.id).then(childIds => {
-        // 判断是否在 menuIds 中，如果存在则删除，否则添加
-        if (this.resourceCategoryIds.indexOf(resourceCategoryChange.id) !== -1) {
-          for (let i = 0; i < childIds.length; i++) {
-            const index = this.resourceCategoryIds.indexOf(childIds[i])
-            if (index !== -1) {
-              this.resourceCategoryIds.splice(index, 1)
-            }
-          }
-        } else {
-          for (let i = 0; i < childIds.length; i++) {
-            const index = this.resourceCategoryIds.indexOf(childIds[i])
-            if (index === -1) {
-              this.resourceCategoryIds.push(childIds[i])
-            }
-          }
-        }
-        this.$refs.resourceCategory.setCheckedKeys(this.resourceCategoryIds)
-      })
+      this.$emit('current-change', val)
     },
     // 保存分类
-    saveResourceCategory() {
-      this.resourceCategoryLoading = true
-      const resourceGroup = { id: this.currentId, resourceCategories: [] }
+    saveResourceCategory(obj, callback) {
+      const resourceGroup = { id: obj.id, resourceCategories: [] }
       // 得到已选中的 key 值
-      this.resourceCategoryIds.forEach(function(id) {
+      obj.resourceCategoryIds.forEach(function(id) {
         const resourceCategory = { id: id }
         resourceGroup.resourceCategories.push(resourceCategory)
       })
       crudApi.editResourceCategory(resourceGroup).then(() => {
         this.crud.notify('保存成功', CRUD.NOTIFICATION_TYPE.SUCCESS)
-        this.resourceCategoryLoading = false
-        this.update()
+        if (callback) {
+          callback(true)
+        }
+        this.update(obj.id)
       }).catch(err => {
-        this.resourceCategoryLoading = false
+        if (callback) {
+          callback(false)
+        }
         console.log(err.response.data.message)
       })
     },
     // 改变数据
-    update() {
+    update(id) {
       // 无刷新更新 表格数据
-      crudApi.get(this.currentId).then(res => {
+      crudApi.get(id).then(res => {
         for (let i = 0; i < this.crud.data.length; i++) {
           if (res.id === this.crud.data[i].id) {
             this.crud.data[i] = res
@@ -289,4 +222,3 @@ export default {
 <style scoped>
 
 </style>
-

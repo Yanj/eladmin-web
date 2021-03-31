@@ -4,12 +4,10 @@
     <div class="head-container">
       <div v-if="crud.props.searchToggle">
         <!-- 搜索 -->
-        <el-input v-if="hasAdminPermission" v-model="query.orgId" clearable size="small" placeholder="输入组织ID进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
-        <el-input v-if="hasAdminPermission" v-model="query.comId" clearable size="small" placeholder="输入医院ID进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
-        <el-input v-if="hasAdminPermission" v-model="query.deptId" clearable size="small" placeholder="输入部门ID进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <dept-picker v-if="hasAdminPermission" @change="handleDeptChange" />
         <el-input v-model="query.blurry" clearable size="small" placeholder="名称搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
         <el-select v-if="hasAdminPermission" v-model="query.status" clearable size="small" placeholder="选择状态搜索" style="width: 150px;" class="filter-item" @change="crud.toQuery">
-          <el-option v-for="item in dict.resource_status" :key="item.id" :label="item.label" :value="item.value" />
+          <el-option v-for="item in dict.resource_category_status" :key="item.id" :label="item.label" :value="item.value" />
         </el-select>
         <rrOperation />
       </div>
@@ -17,34 +15,16 @@
     </div>
     <!--表单组件-->
     <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="500px">
-      <el-form ref="form" inline :model="form" size="small" label-width="80px">
-        <template v-if="hasAdminPermission">
-          <el-form-item :rules="[{required:true, message:'请输入组织ID', trigger:'blur'}]" label="组织ID">
-            <el-input v-model="form.orgId" :disabled="disableEdit" style="width: 370px;" />
-          </el-form-item>
-          <el-form-item :rules="[{required:true, message:'请输入医院ID', trigger:'blur'}]" label="医院ID">
-            <el-input v-model="form.comId" :disabled="disableEdit" style="width: 370px;" />
-          </el-form-item>
-          <el-form-item label="部门ID">
-            <el-input v-model="form.deptId" :disabled="disableEdit" style="width: 370px;" />
-          </el-form-item>
-        </template>
-        <el-form-item :rules="[{required:true, message:'请选择分类', trigger:'blur'}]" label="分类">
-          <resource-category-picker
-            :value.sync="form.resourceCategory"
-            :dept="{ orgId: form.orgId, comId: form.comId, deptId: form.deptId }"
-            @change="handleCategoryChange"
-          />
+      <el-form ref="form" inline :model="form" :rules="rules" size="small" label-width="80px">
+        <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请选择部门', trigger:'blur'}]" label="部门">
+          <dept-picker v-model="formDept" width="370" :disabled="disableEdit" />
         </el-form-item>
-        <el-form-item :rules="[{required: true, message: '请输入资源名称', trigger: 'blur'}]" label="名称" prop="name">
+        <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" style="width: 370px;" />
-        </el-form-item>
-        <el-form-item :rules="[{required: true, message: '请输入资源数量', trigger: 'blur'}]" label="数量" prop="count">
-          <el-input-number v-model.number="form.count" :min="0" :max="999" controls-position="right" style="width: 370px;" />
         </el-form-item>
         <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请选择状态', trigger:'blur'}]" label="状态" prop="status">
           <el-select v-model="form.status" style="width: 370px;">
-            <el-option v-for="item in dict.resource_status" :key="item.id" :label="item.label" :value="item.value" />
+            <el-option v-for="item in dict.resource_category_status" :key="item.id" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
@@ -60,6 +40,7 @@
     <el-table
       ref="table"
       v-loading="crud.loading"
+      highlight-current-row
       :data="crud.data"
       row-key="id"
       @select="crud.selectChange"
@@ -70,16 +51,14 @@
       <el-table-column v-if="hasAdminPermission" label="组织ID" prop="orgId" width="60" />
       <el-table-column v-if="hasAdminPermission" label="医院ID" prop="comId" width="60" />
       <el-table-column v-if="hasAdminPermission" label="部门ID" prop="deptId" width="60" />
-      <el-table-column label="分类" prop="resourceCategory.name" />
       <el-table-column label="名称" prop="name" />
-      <el-table-column label="数量" prop="count" />
       <el-table-column v-if="hasAdminPermission" label="状态" prop="status" width="50">
         <template slot-scope="scope">
-          {{ dict.label.resource_status[scope.row.status] }}
+          {{ dict.label.resource_category_status[scope.row.status] }}
         </template>
       </el-table-column>
       <el-table-column label="备注" prop="remark" />
-      <el-table-column v-permission="['admin','resource:edit','resource:del']" label="操作" width="130px" align="center" fixed="right">
+      <el-table-column v-permission="['admin','resourceCategory:edit','resourceCategory:del']" label="操作" width="130px" align="center" fixed="right">
         <template slot-scope="scope">
           <udOperation
             :data="scope.row"
@@ -95,8 +74,7 @@
 </template>
 
 <script>
-import crudApi from '@/api/yy/resource'
-import resourceCategoryPicker from '@/views/yy/resourceCategory/resourceCategoryPicker'
+import crudApi from '@/api/patientReserve/resourceCategory'
 
 import CRUD, { presenter, header, form, crud } from '@crud/crud'
 import rrOperation from '@crud/RR.operation'
@@ -104,47 +82,49 @@ import crudOperation from '@crud/CRUD.operation'
 import udOperation from '@crud/UD.operation'
 import pagination from '@crud/Pagination'
 import { hasAdminPermission } from '@/components/YyDept'
+import deptPicker from '@/views/patientReserve/components/deptPicker'
 
 const defaultForm = {
   id: null,
   orgId: null,
   comId: null,
   deptId: null,
-  resourceCategory: { id: null },
   name: '',
-  count: 0,
   status: null,
   remark: null
 }
 export default {
-  name: 'Resource',
-  components: { crudOperation, rrOperation, udOperation, pagination, resourceCategoryPicker },
+  name: 'ResourceCategory',
+  components: { crudOperation, rrOperation, udOperation, pagination, deptPicker },
   cruds() {
     return CRUD({
-      title: '资源管理',
-      url: 'api/yy/resource',
-      query: {
-        blurry: null, status: null, orgId: null, comId: null, deptId: null
-      },
+      title: '资源分类管理',
+      url: 'api/yy/resourceCategory',
+      query: { blurry: null, status: null, orgId: null, comId: null, deptId: null },
       queryOnPresenterCreated: true,
       crudMethod: { ...crudApi }
     })
   },
   mixins: [presenter(), header(), form(defaultForm), crud(), hasAdminPermission()],
-  dicts: ['resource_status'],
+  dicts: ['resource_category_status'],
   data() {
     return {
       rules: {
         name: [
-          { required: true, message: '请输入资源名称', trigger: 'blur' }
+          { required: true, message: '请输入分类', trigger: 'blur' }
         ]
       },
       permission: {
-        add: ['admin', 'resource:add'],
-        edit: ['admin', 'resource:edit'],
-        del: ['admin', 'resource:del']
+        add: ['admin', 'resourceCategory:add'],
+        edit: ['admin', 'resourceCategory:edit'],
+        del: ['admin', 'resourceCategory:del']
       },
-      disableEdit: false
+      disableEdit: false,
+      formDept: {
+        orgId: null,
+        comId: null,
+        deptId: null
+      }
     }
   },
   methods: {
@@ -152,24 +132,24 @@ export default {
     [CRUD.HOOK.afterToCU](crud, form) {
       if (!form.id) { // 新增
         this.disableEdit = false
-        form.resourceCategory = { id: null }
       } else { // 编辑
         this.disableEdit = true
+      }
+      this.formDept = {
+        orgId: form.orgId,
+        comId: form.comId,
+        deptId: form.deptId
       }
     },
     // 提交前的验证
     [CRUD.HOOK.afterValidateCU]() {
-      if (this.form.resourceCategory === null || this.form.resourceCategory.id === null) {
-        this.$message({
-          message: '资源分类不能为空',
-          type: 'warning'
-        })
-        return false
-      }
       return true
     },
-    handleCategoryChange(val) {
-      this.form.resourceCategory = val
+    handleDeptChange(dept) {
+      this.query.orgId = dept.orgId
+      this.query.comId = dept.comId
+      this.query.deptId = dept.deptId
+      this.crud.toQuery()
     }
   }
 }
@@ -178,4 +158,3 @@ export default {
 <style scoped>
 
 </style>
-

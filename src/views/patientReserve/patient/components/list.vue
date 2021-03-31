@@ -1,17 +1,17 @@
 <template>
   <div class="app-container">
     <!--工具栏-->
-    <div v-show="showHeader" class="head-container">
+    <div class="head-container">
       <div v-if="crud.props.searchToggle">
         <!-- 搜索 -->
-        <el-input v-if="hasAdminPermission" v-model="query.orgId" clearable size="small" placeholder="组织ID搜索" style="width: 150px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
-        <el-input v-if="hasAdminPermission" v-model="query.comId" clearable size="small" placeholder="医院ID搜索" style="width: 150px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
-        <el-input v-if="hasAdminPermission" v-model="query.deptId" clearable size="small" placeholder="部门ID搜索" style="width: 150px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <template v-if="hasAdminPermission && !isPickerMode">
+          <dept-picker v-if="hasAdminPermission" @change="handleDeptChange" />
+        </template>
         <el-select v-model="query.source" clearable size="small" placeholder="选择来源搜索" style="width: 150px;" class="filter-item" @change="crud.toQuery">
           <el-option v-for="item in dict.patient_source" :key="item.id" :label="item.label" :value="item.value" />
         </el-select>
         <el-input v-model="query.blurry" clearable size="small" placeholder="患者名称/档案号/手机号搜索" style="width: 240px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
-        <el-select v-if="hasAdminPermission" v-model="query.status" clearable size="small" placeholder="选择状态搜索" style="width: 150px;" class="filter-item" @change="crud.toQuery">
+        <el-select v-if="hasAdminPermission && !isPickerMode" v-model="query.status" clearable size="small" placeholder="选择状态搜索" style="width: 150px;" class="filter-item" @change="crud.toQuery">
           <el-option v-for="item in dict.patient_status" :key="item.id" :label="item.label" :value="item.value" />
         </el-select>
         <rrOperation />
@@ -21,14 +21,8 @@
     <!--表单组件-->
     <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="550px">
       <el-form ref="form" inline :model="form" size="small" label-width="100px">
-        <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请输入组织ID', trigger:'blur'}]" label="组织ID">
-          <el-input v-model="form.orgId" :disabled="disableEdit" style="width: 370px;" />
-        </el-form-item>
-        <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请输入医院ID', trigger:'blur'}]" label="医院ID">
-          <el-input v-model="form.comId" :disabled="disableEdit" style="width: 370px;" />
-        </el-form-item>
-        <el-form-item v-if="hasAdminPermission" label="部门ID">
-          <el-input v-model="form.deptId" :disabled="disableEdit" style="width: 370px;" />
+        <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请选择部门', trigger:'blur'}]" label="部门">
+          <dept-picker v-model="formDept" width="370" :disabled="disableEdit" />
         </el-form-item>
         <el-form-item label="来源" prop="source">
           <el-select v-model="form.source" :disabled="disableEdit" style="width: 370px;" @change="handleSourceChange">
@@ -85,8 +79,8 @@
       highlight-current-row
       @select="crud.selectChange"
       @select-all="crud.selectAllChange"
-      @selection-change="crud.selectionChangeHandler"
-      @current-change="handleCurrentChange"
+      @selection-change="handleSelectionChange"
+      @row-click="handleRowClick"
     >
       <el-table-column type="selection" width="55" />
       <el-table-column v-if="hasAdminPermission" label="组织ID" prop="orgId" />
@@ -112,7 +106,7 @@
       <el-table-column label="自定义4" prop="col4" />
       <el-table-column label="自定义5" prop="col5" />
       <el-table-column label="备注" prop="remark" />
-      <el-table-column v-permission="['admin','patient:edit','patient:del']" label="操作" width="130px" align="center" fixed="right">
+      <el-table-column v-if="!isPickerMode" v-permission="['admin','patient:edit','patient:del']" label="操作" width="130px" align="center" fixed="right">
         <template slot-scope="scope">
           <udOperation
             :data="scope.row"
@@ -128,14 +122,15 @@
 </template>
 
 <script>
-import crudApi from '@/api/yy/patient'
+import crudApi from '@/api/patientReserve/patient'
 
 import CRUD, { presenter, header, form, crud } from '@crud/crud'
-import { hasAdminPermission } from '@/components/YyDept'
 import rrOperation from '@crud/RR.operation'
 import crudOperation from '@crud/CRUD.operation'
 import udOperation from '@crud/UD.operation'
 import pagination from '@crud/Pagination'
+import { hasAdminPermission } from '@/components/YyDept'
+import deptPicker from '@/views/patientReserve/components/deptPicker'
 
 const defaultForm = {
   id: null,
@@ -158,22 +153,26 @@ const defaultForm = {
 const defaultSource = 'HIS'
 export default {
   name: 'Patient',
-  components: { crudOperation, rrOperation, udOperation, pagination },
+  components: { crudOperation, rrOperation, udOperation, pagination, deptPicker },
   cruds() {
     return CRUD({
       title: '患者管理',
       url: 'api/yy/patient',
       query: { blurry: null, mrn: null, name: null, phone: null, source: null, orgId: null, comId: null, deptId: null, status: null },
-      queryOnPresenterCreated: false,
+      queryOnPresenterCreated: true,
       crudMethod: { ...crudApi }
     })
   },
   mixins: [presenter(), header(), form(defaultForm), crud(), hasAdminPermission()],
   dicts: ['patient_source', 'patient_status'],
   props: {
-    showHeader: {
-      type: Boolean,
-      default: true
+    mode: {
+      type: String,
+      default: 'list' || 'picker'
+    },
+    comId: {
+      type: [String, Number],
+      default: null
     }
   },
   data() {
@@ -185,22 +184,47 @@ export default {
         del: ['admin', 'patient:del']
       },
       currentSource: currentSource,
-      disableEdit: false
+      disableEdit: false,
+      formDept: {
+        orgId: null,
+        comId: null,
+        deptId: null
+      }
     }
   },
   computed: {
     isSourceExternal: function() {
       return this.currentSource !== defaultSource
+    },
+    isPickerMode: function() {
+      return this.mode === 'picker'
     }
   },
   created() {
-    if (this.showHeader) {
-      setTimeout(() => {
-        this.crud.toQuery()
-      }, 500)
+    if (this.isPickerMode) {
+      this.crud.optShow = {
+        add: false,
+        edit: false,
+        del: false,
+        download: false,
+        reset: false
+      }
     }
   },
   methods: {
+    handleDeptChange(dept) {
+      this.query.orgId = dept.orgId
+      this.query.comId = dept.comId
+      this.query.deptId = dept.deptId
+      this.crud.toQuery()
+    },
+    // 刷新之前
+    [CRUD.HOOK.beforeRefresh](crud) {
+      if (this.isPickerMode) {
+        this.query.comId = this.comId
+        this.query.status = '1'
+      }
+    },
     // 刷新之后
     [CRUD.HOOK.afterRefresh](crud) {
       this.$emit('after-refresh', crud)
@@ -215,16 +239,38 @@ export default {
         this.currentSource = form.source
         this.disableEdit = true
       }
+      this.formDept = {
+        orgId: form.orgId,
+        comId: form.comId,
+        deptId: form.deptId
+      }
     },
     // 提交前的验证
     [CRUD.HOOK.afterValidateCU]() {
+      this.form.orgId = this.formDept.orgId
+      this.form.comId = this.formDept.comId
+      this.form.deptId = this.formDept.deptId
       return true
     },
-    // 处理列表选中事件
-    handleCurrentChange(row) {
-      if (row) {
-        this.$emit('current-change', row)
-      }
+    // 表格选中监听
+    handleSelectionChange(selection) {
+      this.crud.selectionChangeHandler(selection)
+      this.$emit('selection-change', selection)
+    },
+    // 行选中监听
+    handleRowClick(row) {
+      this.$refs['table'].toggleRowSelection(row)
+    },
+    setTableQuery(query) {
+      console.log(query)
+      this.query.orgId = query.orgId
+      this.query.comId = query.comId
+      this.query.deptId = query.deptId
+      this.refreshTable()
+    },
+    // 刷新数据
+    refreshTable() {
+      this.crud.toQuery()
     },
     // 清空表格选中
     clearSelection() {
@@ -234,15 +280,7 @@ export default {
     clear() {
       this.crud.data = []
     },
-    // 根据套餐编码设置选中行
-    setCurrentRowByIndex(index) {
-      for (let i = 0; i < this.crud.data.length; i++) {
-        if (index === i) {
-          this.$refs.table.setCurrentRow(this.crud.data[i])
-          break
-        }
-      }
-    },
+    // 来源改变
     handleSourceChange(v) {
       this.currentSource = v
     }
@@ -253,4 +291,3 @@ export default {
 <style scoped>
 
 </style>
-

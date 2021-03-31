@@ -37,6 +37,19 @@ export function get(id) {
 }
 
 /**
+ * 修改分组分类
+ * @param {*} data .
+ * @returns .
+ */
+export function editResourceCategory(data) {
+  return request({
+    url: 'api/yy/resourceGroup/resourceCategory',
+    method: 'put',
+    data
+  })
+}
+
+/**
  * 获取所有符合条件的资源分组
  *
  * @param {*} params .
@@ -47,21 +60,6 @@ export function getAllResourceGroups(params) {
     url: 'api/yy/resourceGroup?paged=false',
     method: 'get',
     params
-  })
-}
-
-export function getAllTermResourceGroups(dept, termCode) {
-  dept = dept || {}
-  return request({
-    url: 'api/yy/resourceGroup',
-    method: 'get',
-    params: {
-      paged: false,
-      orgId: dept.orgId,
-      comId: dept.comId,
-      deptId: dept.deptId,
-      termCode: termCode
-    }
   })
 }
 
@@ -79,15 +77,23 @@ export function getChild(id) {
 }
 
 /**
- * 修改分组分类
- * @param {*} data .
+ * 获取符合条件的资源分组
+ * @param {*} dept .
+ * @param {*} termCode .
  * @returns .
  */
-export function editResourceCategory(data) {
+export function getResourceGroupsByTermCode(dept, termCode) {
+  dept = dept || {}
   return request({
-    url: 'api/yy/resourceGroup/resourceCategory',
-    method: 'put',
-    data
+    url: 'api/yy/resourceGroup',
+    method: 'get',
+    params: {
+      paged: false,
+      orgId: dept.orgId,
+      comId: dept.comId,
+      deptId: dept.deptId,
+      termCode: termCode
+    }
   })
 }
 

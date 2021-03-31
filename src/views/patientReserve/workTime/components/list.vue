@@ -4,9 +4,7 @@
     <div class="head-container">
       <div v-if="crud.props.searchToggle">
         <!-- 搜索 -->
-        <el-input v-if="hasAdminPermission" v-model="query.orgId" clearable size="small" placeholder="输入组织ID进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
-        <el-input v-if="hasAdminPermission" v-model="query.comId" clearable size="small" placeholder="输入医院ID进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
-        <el-input v-if="hasAdminPermission" v-model="query.deptId" clearable size="small" placeholder="输入部门ID进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <dept-picker v-if="hasAdminPermission" @change="handleDeptChange" />
         <el-select v-if="hasAdminPermission" v-model="query.status" clearable size="small" placeholder="选择状态搜索" style="width: 150px;" class="filter-item" @change="crud.toQuery">
           <el-option v-for="item in dict.work_time_status" :key="item.id" :label="item.label" :value="item.value" />
         </el-select>
@@ -17,14 +15,8 @@
     <!--表单组件-->
     <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="550px">
       <el-form ref="form" inline :model="form" :rules="rules" size="small" label-width="100px">
-        <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请输入组织ID', trigger:'blur'}]" label="组织ID">
-          <el-input v-model="form.orgId" :disabled="disableEdit" style="width: 370px;" />
-        </el-form-item>
-        <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请输入医院ID', trigger:'blur'}]" label="医院ID">
-          <el-input v-model="form.comId" :disabled="disableEdit" style="width: 370px;" />
-        </el-form-item>
-        <el-form-item v-if="hasAdminPermission" label="部门ID">
-          <el-input v-model="form.deptId" :disabled="disableEdit" style="width: 370px;" />
+        <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请选择部门', trigger:'blur'}]" label="部门">
+          <dept-picker v-model="formDept" width="370" :disabled="disableEdit" />
         </el-form-item>
         <el-form-item label="开始时间" prop="beginTime">
           <el-time-select
@@ -103,14 +95,15 @@
 </template>
 
 <script>
-import crudApi from '@/api/yy/workTime'
+import crudApi from '@/api/patientReserve/workTime'
 
 import CRUD, { presenter, header, form, crud } from '@crud/crud'
-import { hasAdminPermission } from '@/components/YyDept'
 import rrOperation from '@crud/RR.operation'
 import crudOperation from '@crud/CRUD.operation'
 import udOperation from '@crud/UD.operation'
 import pagination from '@crud/Pagination'
+import { hasAdminPermission } from '@/components/YyDept'
+import deptPicker from '@/views/patientReserve/components/deptPicker'
 
 const defaultForm = {
   id: null,
@@ -123,8 +116,8 @@ const defaultForm = {
   remark: null
 }
 export default {
-  name: 'WorkTime',
-  components: { crudOperation, rrOperation, udOperation, pagination },
+  name: 'WorkTimeList',
+  components: { crudOperation, rrOperation, udOperation, pagination, deptPicker },
   cruds() {
     return CRUD({
       title: '工作时间管理',
@@ -133,7 +126,8 @@ export default {
       query: {
         orgId: null,
         comId: null,
-        deptId: null
+        deptId: null,
+        status: null
       },
       sort: ['beginTime,asc'],
       crudMethod: { ...crudApi }
@@ -156,7 +150,12 @@ export default {
         edit: ['admin', 'workTime:edit'],
         del: ['admin', 'workTime:del']
       },
-      disableEdit: false
+      disableEdit: false,
+      formDept: {
+        orgId: null,
+        comId: null,
+        deptId: null
+      }
     }
   },
   methods: {
@@ -167,9 +166,15 @@ export default {
       } else { // 编辑
         this.disableEdit = true
       }
+      this.formDept = {
+        orgId: form.orgId,
+        comId: form.comId,
+        deptId: form.deptId
+      }
     },
     // 提交前的验证
     [CRUD.HOOK.afterValidateCU]() {
+      console.log(this.form)
       if (this.form.beginTime >= this.form.endTime) {
         this.$message({
           message: '开始时间必须大于结束时间',
@@ -177,7 +182,16 @@ export default {
         })
         return false
       }
+      this.form.orgId = this.formDept.orgId
+      this.form.comId = this.formDept.comId
+      this.form.deptId = this.formDept.deptId
       return true
+    },
+    handleDeptChange(dept) {
+      this.query.orgId = dept.orgId
+      this.query.comId = dept.comId
+      this.query.deptId = dept.deptId
+      this.crud.toQuery()
     }
   }
 }
@@ -186,4 +200,3 @@ export default {
 <style scoped>
 
 </style>
-

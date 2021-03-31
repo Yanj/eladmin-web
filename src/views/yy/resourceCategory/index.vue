@@ -4,10 +4,13 @@
     <div class="head-container">
       <div v-if="crud.props.searchToggle">
         <!-- 搜索 -->
-        <hospital-picker
-          :value="currentHospital"
-          @change="handleHospitalChange"
-        />
+        <el-input v-if="hasAdminPermission" v-model="query.orgId" clearable size="small" placeholder="输入组织ID进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <el-input v-if="hasAdminPermission" v-model="query.comId" clearable size="small" placeholder="输入医院ID进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <el-input v-if="hasAdminPermission" v-model="query.deptId" clearable size="small" placeholder="输入部门ID进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <el-input v-model="query.blurry" clearable size="small" placeholder="名称搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <el-select v-if="hasAdminPermission" v-model="query.status" clearable size="small" placeholder="选择状态搜索" style="width: 150px;" class="filter-item" @change="crud.toQuery">
+          <el-option v-for="item in dict.resource_category_status" :key="item.id" :label="item.label" :value="item.value" />
+        </el-select>
         <rrOperation />
       </div>
       <crudOperation :permission="permission" />
@@ -15,11 +18,22 @@
     <!--表单组件-->
     <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="500px">
       <el-form ref="form" inline :model="form" :rules="rules" size="small" label-width="80px">
-        <el-form-item v-show="false" label="医院">
-          <hospital-picker :value="form.dept" :disabled="true" />
+        <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请输入组织ID', trigger:'blur'}]" label="组织ID">
+          <el-input v-model="form.orgId" :disabled="disableEdit" style="width: 370px;" />
+        </el-form-item>
+        <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请输入医院ID', trigger:'blur'}]" label="医院ID">
+          <el-input v-model="form.comId" :disabled="disableEdit" style="width: 370px;" />
+        </el-form-item>
+        <el-form-item v-if="hasAdminPermission" label="部门ID">
+          <el-input v-model="form.deptId" :disabled="disableEdit" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" style="width: 370px;" />
+        </el-form-item>
+        <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请选择状态', trigger:'blur'}]" label="状态" prop="status">
+          <el-select v-model="form.status" style="width: 370px;">
+            <el-option v-for="item in dict.resource_category_status" :key="item.id" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" style="width: 370px;" />
@@ -42,7 +56,15 @@
       @selection-change="crud.selectionChangeHandler"
     >
       <el-table-column type="selection" width="55" />
+      <el-table-column v-if="hasAdminPermission" label="组织ID" prop="orgId" width="60" />
+      <el-table-column v-if="hasAdminPermission" label="医院ID" prop="comId" width="60" />
+      <el-table-column v-if="hasAdminPermission" label="部门ID" prop="deptId" width="60" />
       <el-table-column label="名称" prop="name" />
+      <el-table-column v-if="hasAdminPermission" label="状态" prop="status" width="50">
+        <template slot-scope="scope">
+          {{ dict.label.resource_category_status[scope.row.status] }}
+        </template>
+      </el-table-column>
       <el-table-column label="备注" prop="remark" />
       <el-table-column v-permission="['admin','resourceCategory:edit','resourceCategory:del']" label="操作" width="130px" align="center" fixed="right">
         <template slot-scope="scope">
@@ -61,34 +83,37 @@
 
 <script>
 import crudApi from '@/api/yy/resourceCategory'
-import hospitalPicker from '@/views/yy/hospital/hospitalPicker'
 
 import CRUD, { presenter, header, form, crud } from '@crud/crud'
 import rrOperation from '@crud/RR.operation'
 import crudOperation from '@crud/CRUD.operation'
 import udOperation from '@crud/UD.operation'
 import pagination from '@crud/Pagination'
+import { hasAdminPermission } from '@/components/YyDept'
 
 const defaultForm = {
   id: null,
-  dept: { id: null, name: '' },
+  orgId: null,
+  comId: null,
+  deptId: null,
   name: '',
   status: null,
   remark: null
 }
 export default {
   name: 'ResourceCategory',
-  components: { crudOperation, rrOperation, udOperation, pagination, hospitalPicker },
+  components: { crudOperation, rrOperation, udOperation, pagination },
   cruds() {
     return CRUD({
       title: '资源分类管理',
       url: 'api/yy/resourceCategory',
-      query: { deptId: null },
-      queryOnPresenterCreated: false,
+      query: { blurry: null, status: null, orgId: null, comId: null, deptId: null },
+      queryOnPresenterCreated: true,
       crudMethod: { ...crudApi }
     })
   },
-  mixins: [presenter(), header(), form(defaultForm), crud()],
+  mixins: [presenter(), header(), form(defaultForm), crud(), hasAdminPermission()],
+  dicts: ['resource_category_status'],
   data() {
     return {
       rules: {
@@ -101,33 +126,21 @@ export default {
         edit: ['admin', 'resourceCategory:edit'],
         del: ['admin', 'resourceCategory:del']
       },
-      currentHospital: null
+      disableEdit: false
     }
   },
   methods: {
     // 新增与编辑前做的操作
     [CRUD.HOOK.afterToCU](crud, form) {
-      form.dept = this.currentHospital
+      if (!form.id) { // 新增
+        this.disableEdit = false
+      } else { // 编辑
+        this.disableEdit = true
+      }
     },
     // 提交前的验证
     [CRUD.HOOK.afterValidateCU]() {
-      if (this.form.dept === null || this.form.dept.id === null) {
-        this.form.dept = this.currentHospital
-      }
-      if (this.form.dept === null || this.form.dept.id === null) {
-        this.$message({
-          message: '所属医院不能为空',
-          type: 'warning'
-        })
-        return false
-      }
       return true
-    },
-    // 选择医院改变
-    handleHospitalChange(val) {
-      this.currentHospital = val
-      this.query.deptId = val.id
-      this.crud.toQuery()
     }
   }
 }
