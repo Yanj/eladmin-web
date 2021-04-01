@@ -7,7 +7,7 @@
         <template v-if="hasAdminPermission && !isPickerMode">
           <dept-picker @change="handleDeptChange" />
         </template>
-        <el-input v-model="query.blurry" clearable size="small" placeholder="名称搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <el-input v-model="query.blurry" clearable size="small" placeholder="名称或者编码搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
         <el-select v-if="hasAdminPermission && !isPickerMode" v-model="query.status" clearable size="small" placeholder="选择状态搜索" style="width: 150px;" class="filter-item" @change="crud.toQuery">
           <el-option v-for="item in dict.term_status" :key="item.id" :label="item.label" :value="item.value" />
         </el-select>

@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function getUserWorkCount(params) {
   return request({
-    url: 'api/yy/reserve/userWorkCount',
+    url: 'api/yy/userWorkCount/list',
     method: 'get',
     params
   })

@@ -23,7 +23,7 @@
         @click="handleQuery"
       >查询</el-button>
     </div>
-    <el-table v-loading="loading" :data="tableData">
+    <el-table v-loading="loading" :data="tableData" :span-method="handleTableSpan" border>
       <el-table-column label="用户" prop="userName" align="center" />
       <el-table-column label="套餐" prop="termName" align="center" />
       <el-table-column label="日期" prop="date" align="center" />
@@ -38,7 +38,7 @@ import userWorkCountApi from '@/api/statistics/userWorkCount'
 import { hasAdminPermission } from '@/components/YyDept'
 import deptPicker from '@/views/patientReserve/components/deptPicker'
 
-import { getDate, formatDate } from '@/utils'
+import { getMonthDate, getDate, formatDate } from '@/utils'
 
 export default {
   name: 'UserWorkCount',
@@ -67,8 +67,8 @@ export default {
   },
   watch: {},
   created() {
-    this.defaultDateRange = [getDate(-120), getDate(-1)]
-    this.dateRange = [formatDate(getDate(0)), formatDate(getDate(0))]
+    this.defaultDateRange = [getDate(-120), getDate(0)]
+    this.dateRange = [formatDate(getMonthDate(0)), formatDate(getMonthDate(-1))]
     this.query.beginDate = this.dateRange[0]
     this.query.endDate = this.dateRange[1]
   },
@@ -100,14 +100,14 @@ export default {
           for (let i = 0; i < res.length; i++) {
             if (!lastTermId || lastTermId !== res[i].termId) {
               if (last) {
-                arr.push({ ...last, termName: '合计', date: '', count: termCount })
+                arr.push({ ...last, termId: null, termName: '合计', date: '', count: termCount })
               }
               termCount = 0
             }
 
             if (!lastUserId || lastUserId !== res[i].userId) {
               if (last) {
-                arr.push({ ...last, userName: '合计', termName: '', date: '', count: userCount })
+                arr.push({ ...last, userId: null, userName: '合计', termId: null, termName: '', date: '', count: userCount })
               }
               userCount = 0
             }
@@ -121,8 +121,8 @@ export default {
           }
 
           if (last) {
-            arr.push({ ...last, termName: '合计', date: '', count: termCount })
-            arr.push({ ...last, userName: '合计', termName: '', date: '', count: userCount })
+            arr.push({ ...last, termId: null, termName: '合计', date: '', count: termCount })
+            arr.push({ ...last, userId: null, userName: '合计', termId: null, termName: '', date: '', count: userCount })
           }
 
           this.tableData = arr
@@ -131,6 +131,66 @@ export default {
       }).catch(() => {
         this.loading = false
       })
+    },
+    handleTableSpan({ row, column, rowIndex, columnIndex }) {
+      if (columnIndex === 0) {
+        if (this.tableData[rowIndex].userId == null) {
+          return {
+            rowspan: 1,
+            colspan: 1
+          }
+        }
+        let rowspan = 0
+        let colspan = 0
+        if (rowIndex === 0 || (rowIndex > 0 && this.tableData[rowIndex].userId !== this.tableData[rowIndex - 1].userId)) {
+          rowspan = 1
+          colspan = 1
+          for (let i = rowIndex + 1; i < this.tableData.length; i++) {
+            if (this.tableData[i].userId === this.tableData[rowIndex].userId) {
+              rowspan++
+            } else {
+              break
+            }
+          }
+        }
+        console.log({
+          rowspan,
+          colspan
+        })
+        return {
+          rowspan,
+          colspan
+        }
+      } else
+      if (columnIndex === 1) {
+        if (this.tableData[rowIndex].termId == null) {
+          return {
+            rowspan: 1,
+            colspan: 1
+          }
+        }
+        let rowspan = 0
+        let colspan = 0
+        if (rowIndex === 0 || (rowIndex > 0 && this.tableData[rowIndex].termId !== this.tableData[rowIndex - 1].termId)) {
+          rowspan = 1
+          colspan = 1
+          for (let i = rowIndex + 1; i < this.tableData.length; i++) {
+            if (this.tableData[i].termId === this.tableData[rowIndex].termId) {
+              rowspan++
+            } else {
+              break
+            }
+          }
+        }
+        // console.log({
+        //   rowspan,
+        //   colspan
+        // })
+        return {
+          rowspan,
+          colspan
+        }
+      }
     }
   }
 }

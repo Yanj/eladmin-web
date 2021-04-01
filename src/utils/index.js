@@ -91,6 +91,33 @@ export function parseTime(time, cFormat) {
 
 const dayOffset = 24 * 60 * 60 * 1000
 
+export function getMonthCount(date) {
+  const month = date.getMonth() + 1
+  if (month === 1 || month === 3 || month === 5 || month === 7 || month === 8 || month === 10 || month === 12) {
+    return 31
+  } else if (month === 2) {
+    const year = date.getFullYear()
+    // 闰年: 能被4整除且不能被100整除, 或者能被400整除
+    if ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) {
+      return 28
+    } else {
+      return 27
+    }
+  } else {
+    return 30
+  }
+}
+
+export function getMonthDate(offset) {
+  const date = new Date()
+  const day = date.getDate()
+  if (offset < 0) {
+    const monthDayCount = getMonthCount(date)
+    offset = monthDayCount + offset
+  }
+  return getDate(-(day - 1) + offset)
+}
+
 export function getWeekDate(offset) {
   const date = new Date()
   const day = date.getDay() - 1 // 因为周日是第 0 天, 为了让周一是第 0 天, 减1

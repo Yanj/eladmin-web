@@ -27,6 +27,15 @@
             <el-option v-for="item in dict.resource_group_status" :key="item.id" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
+        <el-form-item label="排序" prop="sort">
+          <el-input-number
+            v-model.number="form.sort"
+            :min="0"
+            :max="999"
+            controls-position="right"
+            style="width: 370px;"
+          />
+        </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" style="width: 370px;" />
         </el-form-item>
@@ -59,12 +68,13 @@
             <el-table-column v-if="hasAdminPermission" label="组织ID" prop="orgId" width="60" />
             <el-table-column v-if="hasAdminPermission" label="医院ID" prop="comId" width="60" />
             <el-table-column v-if="hasAdminPermission" label="部门ID" prop="deptId" width="60" />
-            <el-table-column label="名称" prop="name" width="250" />
+            <el-table-column label="名称" prop="name" />
             <el-table-column v-if="hasAdminPermission" label="状态" prop="status" width="50">
               <template slot-scope="scope">
                 {{ dict.label.resource_group_status[scope.row.status] }}
               </template>
             </el-table-column>
+            <el-table-column label="排序" prop="sort" width="50" />
             <el-table-column label="备注" prop="remark" width="50" />
             <el-table-column v-permission="['admin','resourceGroup:edit','resourceGroup:del']" label="操作" width="130px" align="center" fixed="right">
               <template slot-scope="scope">
@@ -104,6 +114,7 @@ const defaultForm = {
   comId: null,
   deptId: null,
   name: '',
+  sort: 1,
   status: null,
   remark: null
 }

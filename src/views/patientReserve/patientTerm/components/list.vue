@@ -9,6 +9,9 @@
         </template>
         <el-input v-model="query.blurry" clearable size="small" placeholder="输入套餐名称/编码进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
         <el-input v-model="query.patientName" clearable size="small" placeholder="输入患者名称进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <el-select v-model="query.type" clearable size="small" placeholder="选择类型搜索" style="width: 150px;" class="filter-item" @change="crud.toQuery">
+          <el-option v-for="item in dict.patient_term_type" :key="item.id" :label="item.label" :value="item.value" />
+        </el-select>
         <el-select v-if="hasAdminPermission && !isPickerMode" v-model="query.status" clearable size="small" placeholder="选择状态搜索" style="width: 150px;" class="filter-item" @change="crud.toQuery">
           <el-option v-for="item in dict.patient_term_status" :key="item.id" :label="item.label" :value="item.value" />
         </el-select>
@@ -72,7 +75,7 @@
           <el-input v-model="form.termOperatorCount" :disabled="true" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="实际支付" prop="editPrice">
-          <currency-input v-model="form.editPrice" :disabled="true" style="width: 370px;" />
+          <currency-input v-model="form.editPrice" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="剩余次数" prop="times">
           <el-input-number v-model.number="form.times" :min="0" :max="999" controls-position="right" style="width: 370px;" />
@@ -116,6 +119,11 @@
       <el-table-column v-if="hasAdminPermission" label="部门ID" prop="deptId" />
       <el-table-column label="购买ID" prop="patItemId" />
       <el-table-column label="患者" prop="patient.name" />
+      <el-table-column label="套餐类型">
+        <template slot-scope="scope">
+          {{ dict.label.patient_term_type[scope.row.type] }}
+        </template>
+      </el-table-column>
       <el-table-column label="套餐编码" prop="termCode" />
       <el-table-column label="套餐名称" prop="termName" />
       <el-table-column label="套餐现价(元)" prop="termPrice">
@@ -218,6 +226,7 @@ export default {
         deptId: null,
         blurry: null,
         patientName: null,
+        type: null,
         patientId: null
       },
       queryOnPresenterCreated: true,
@@ -225,7 +234,7 @@ export default {
     })
   },
   mixins: [presenter(), header(), form(defaultForm), crud(), hasAdminPermission()],
-  dicts: ['patient_term_status'],
+  dicts: ['patient_term_status', 'patient_term_type'],
   props: {
     mode: {
       type: String,

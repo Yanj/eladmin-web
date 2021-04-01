@@ -158,15 +158,15 @@ export default {
     rebuildQuery() {
       console.log(this.patientHisQueryType)
       console.log(this.patientHisQueryInfo)
-      if (this.patientHisQueryType === 0) {
+      if (this.patientHisQueryType === 0 || this.patientHisQueryType === '0') {
         this.query.mrn = null
         this.query.name = null
         this.query.phone = this.patientHisQueryInfo
-      } else if (this.patientHisQueryTyp === 1) {
+      } else if (this.patientHisQueryType === 1 || this.patientHisQueryType === '1') {
         this.query.mrn = null
         this.query.name = this.patientHisQueryInfo
         this.query.phone = null
-      } else if (this.patientHisQueryType === 2) {
+      } else if (this.patientHisQueryType === 2 || this.patientHisQueryType === '2') {
         this.query.mrn = this.patientHisQueryInfo
         this.query.name = null
         this.query.phone = null

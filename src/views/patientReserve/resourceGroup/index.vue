@@ -1,5 +1,5 @@
 <template>
-  <list ref="list" :has-right="hasAdminPermission" @after-refresh="handleListRefresh" @current-change="handleCurrentChange">
+  <list ref="list" :has-right="hasUpdateResourceCategoryPermission" @after-refresh="handleListRefresh" @current-change="handleCurrentChange">
     <template v-slot:right>
       <el-card class="box-card" shadow="never">
         <div slot="header" class="clearfix">
@@ -57,7 +57,7 @@ export default {
   },
   computed: {
     hasUpdateResourceCategoryPermission: function() {
-      return this.hasAdminPermission
+      return this.hasAdminPermission || true
     }
   },
   methods: {

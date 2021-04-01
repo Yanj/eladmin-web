@@ -296,9 +296,9 @@ export default {
     },
     // 刷新数据
     loadResourceGroups() {
-      if (this.query && this.query.comId) {
+      if (this.query) {
         this.loading = true
-        getAllResourceGroups({ comId: this.query.comId }).then(res => {
+        getAllResourceGroups({ comId: this.query.comId, sort: 'sort,asc' }).then(res => {
           this.resourceGroups = res.content
           this.originalResourceGroups = cloneDeep(res.content)
           // 加载列表数据
