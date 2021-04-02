@@ -10,7 +10,7 @@
         @click="handleQuery"
       >查询</el-button>
     </div>
-    <el-table v-loading="loading" :data="tableData">
+    <el-table v-loading="loading" :data="tableData" border>
       <el-table-column label="套餐" prop="termName" align="center" />
       <el-table-column label="总数量" prop="totalTimes" align="center" />
       <el-table-column label="剩余数量" prop="times" align="center" />

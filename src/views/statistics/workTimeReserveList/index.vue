@@ -30,19 +30,38 @@
         type="primary"
         @click="handleQuery"
       >查询</el-button>
+      <el-button
+        :loading="downloadLoading"
+        :disabled="!tableData.length"
+        class="filter-item"
+        size="small"
+        type="warning"
+        @click="handleDownload"
+      >导出</el-button>
+      <el-button
+        class="filter-item"
+        size="small"
+        @click="handlePrint"
+      >打印</el-button>
     </div>
-    <el-table v-loading="tableLoading" :data="tableData">
-      <el-table-column label="资源组">
-        <template slot-scope="scope">
-          {{ scope.row.resourceGroup.name }}
-        </template>
-      </el-table-column>
-      <el-table-column v-for="(item, index) in tableColumns" :key="index" :label="item.label" align="center" width="100">
-        <template slot-scope="scope">
-          <span v-for="(reserve, reserveIndex) in scope.row.list[index].reserves" :key="reserve.id" style="display:block;text-align:left;">{{ reserveIndex !== 0 ? '' : '' }} {{ reserve.patient.name }}({{ verifyStatus_labels[reserve.verifyStatus] }})</span>
-        </template>
-      </el-table-column>
-    </el-table>
+    <div id="printWrapper">
+      <el-table v-loading="tableLoading" :data="tableData" border>
+        <el-table-column label="资源组" align="center" width="150">
+          <template slot-scope="scope">
+            {{ scope.row.resourceGroup.name }}
+          </template>
+        </el-table-column>
+        <el-table-column v-for="(item, index) in tableColumns" :key="index" :label="item.label" align="center" :width="showStatus ? 100 : 60">
+          <template slot-scope="scope">
+            <span v-for="(reserve, reserveIndex) in scope.row.list[index].reserves" :key="reserve.id" style="display: block;text-align: left;padding-left: 5px;">
+              {{ reserveIndex !== 0 ? '' : '' }}
+              {{ reserve.patient.name }}
+              <i v-if="showStatus">({{ verifyStatus_labels[reserve.verifyStatus] }})</i>
+            </span>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
   </div>
 </template>
 
@@ -52,8 +71,10 @@ import { hasAdminPermission } from '@/components/YyDept'
 import deptPicker from '@/views/patientReserve/components/deptPicker'
 
 import workTimeReserveListApi from '@/api/statistics/workTimeReserveList'
+import { download } from '@/api/data'
 
 import { getDate, formatDate } from '@/utils'
+import { downloadFile } from '@/utils/index'
 
 export default {
   name: 'WorkTimeReserveList',
@@ -88,7 +109,9 @@ export default {
         'check_in': '已签到',
         'verified': '已核销',
         'canceled': '已取消'
-      }
+      },
+      showStatus: true,
+      downloadLoading: false
     }
   },
   created() {
@@ -133,17 +156,40 @@ export default {
       this.tableLoading = true
       workTimeReserveListApi.getWorkTimeReserveList(this.query).then(res => {
         if (res) {
+          this.showStatus = !this.query.verifyStatus
           this.tableData = res
         }
         this.tableLoading = false
       }).catch(() => {
         this.tableLoading = false
       })
+    },
+    handleDownload() {
+      this.downloadLoading = true
+      download('api/yy/workTimeReserveList/download', this.query).then(result => {
+        downloadFile(result, this.query.date + '数据', 'xlsx')
+        this.downloadLoading = false
+      }).catch(() => {
+        this.downloadLoading = false
+      })
+    },
+    handlePrint() {
+      const subOutputRankPrint = document.getElementById('printWrapper')
+      // console.log(subOutputRankPrint.innerHTML)
+      const newContent = subOutputRankPrint.innerHTML
+      const oldContent = document.body.innerHTML
+      document.body.innerHTML = newContent
+      window.print()
+      window.location.reload()
+      document.body.innerHTML = oldContent
+      return false
     }
   }
 }
 </script>
 
-<style scoped>
-
+<style>
+#printWrapper .el-table .cell {
+  padding: 0;
+}
 </style>
