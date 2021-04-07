@@ -22,6 +22,14 @@
         type="primary"
         @click="handleQuery"
       >查询</el-button>
+      <el-button
+        :loading="downloadLoading"
+        :disabled="!tableData.length"
+        class="filter-item"
+        size="small"
+        type="warning"
+        @click="handleDownload"
+      >导出</el-button>
     </div>
     <el-table v-loading="loading" :data="tableData" :span-method="handleTableSpan" border>
       <el-table-column label="用户" prop="userName" align="center" />
@@ -34,11 +42,13 @@
 
 <script>
 import userWorkCountApi from '@/api/statistics/userWorkCount'
+import { download } from '@/api/data'
 
 import { hasAdminPermission } from '@/components/YyDept'
 import deptPicker from '@/views/patientReserve/components/deptPicker'
 
 import { getMonthDate, getDate, formatDate } from '@/utils'
+import { downloadFile } from '@/utils/index'
 
 export default {
   name: 'UserWorkCount',
@@ -62,7 +72,8 @@ export default {
       },
       dateRange: ['', ''],
       loading: false,
-      tableData: []
+      tableData: [],
+      downloadLoading: false
     }
   },
   watch: {},
@@ -191,6 +202,15 @@ export default {
           colspan
         }
       }
+    },
+    handleDownload() {
+      this.downloadLoading = true
+      download('api/yy/userWorkCount/download', this.query).then(result => {
+        downloadFile(result, '工作量数据', 'xlsx')
+        this.downloadLoading = false
+      }).catch(() => {
+        this.downloadLoading = false
+      })
     }
   }
 }
