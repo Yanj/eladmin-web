@@ -8,4 +8,12 @@ export function getUserWorkCount(params) {
   })
 }
 
-export default { getUserWorkCount }
+export function getUserWorkCountList(params) {
+  return request({
+    url: 'api/yy/userWorkCount/countList',
+    method: 'get',
+    params
+  })
+}
+
+export default { getUserWorkCount, getUserWorkCountList }
