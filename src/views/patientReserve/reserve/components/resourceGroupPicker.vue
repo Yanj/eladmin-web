@@ -30,7 +30,7 @@
 import { getAllResourceGroups, getResourceGroupsByTermCode } from '@/api/patientReserve/resourceGroup'
 
 export default {
-  name: 'ResourceCategoryPicker',
+  name: 'ReserveResourceGroupPicker',
   props: {
     value: {
       type: Object,

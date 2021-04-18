@@ -30,7 +30,7 @@
 import { getAllWorkTime } from '@/api/patientReserve/workTime'
 
 export default {
-  name: 'WorkTimePicker',
+  name: 'ReserveWorkTimePicker',
   props: {
     value: {
       type: Object,

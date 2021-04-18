@@ -54,7 +54,7 @@ import { getMonthDate, getDate, formatDate } from '@/utils'
 import { downloadFile } from '@/utils/index'
 
 export default {
-  name: 'UserWorkCount',
+  name: 'UserWorkCountList',
   components: { deptPicker },
   mixins: [hasAdminPermission()],
   props: {},

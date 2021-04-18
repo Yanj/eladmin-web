@@ -152,7 +152,7 @@ const defaultForm = {
 }
 const defaultSource = 'HIS'
 export default {
-  name: 'Patient',
+  name: 'PatientList',
   components: { crudOperation, rrOperation, udOperation, pagination, deptPicker },
   cruds() {
     return CRUD({

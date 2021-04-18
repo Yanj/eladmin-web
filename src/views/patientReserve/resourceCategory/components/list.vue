@@ -94,7 +94,7 @@ const defaultForm = {
   remark: null
 }
 export default {
-  name: 'ResourceCategory',
+  name: 'ResourceCategoryList',
   components: { crudOperation, rrOperation, udOperation, pagination, deptPicker },
   cruds() {
     return CRUD({
@@ -143,6 +143,9 @@ export default {
     },
     // 提交前的验证
     [CRUD.HOOK.afterValidateCU]() {
+      this.form.orgId = this.formDept.orgId
+      this.form.comId = this.formDept.comId
+      this.form.deptId = this.formDept.deptId
       return true
     },
     handleDeptChange(dept) {

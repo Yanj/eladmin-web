@@ -84,7 +84,7 @@ const defaultForm = {
   enabled: 'true'
 }
 export default {
-  name: 'Hospital',
+  name: 'HospitalList',
   components: { crudOperation, rrOperation, udOperation, pagination },
   cruds() {
     return CRUD({ title: '医院管理', url: 'api/yy/hospital', crudMethod: { ...crudApi }})

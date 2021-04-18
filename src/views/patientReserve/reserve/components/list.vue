@@ -21,13 +21,13 @@
     <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="600px">
       <el-form ref="form" inline :model="form" :rules="rules" size="small" label-width="120px">
         <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请选择部门', trigger:'blur'}]" label="部门">
-          <dept-picker v-model="formDept" width="370" :disabled="disableEdit" />
+          <dept-picker v-model="formDept" width="370" :disabled="disableEdit" @change="handleFormDeptChange" />
         </el-form-item>
         <el-form-item label="患者" prop="patient">
-          <patient-picker :value="currentPatients" :disabled="form.id != null" @change="handlePatientsChange" />
+          <patient-picker :com-id="form.comId" :value="currentPatients" :disabled="form.id != null" @change="handlePatientsChange" />
         </el-form-item>
         <el-form-item label="患者套餐" prop="patient">
-          <patient-term-picker :value="currentPatientTerms" :disabled="form.id != null" :patient="form.patient" @change="handlePatientTermsChange" />
+          <patient-term-picker :com-id="form.comId" :value="currentPatientTerms" :disabled="form.id != null" :patient="form.patient" @change="handlePatientTermsChange" />
         </el-form-item>
         <el-form-item label="套餐资源组" prop="resourceGroup">
           <resource-group-picker
@@ -210,7 +210,7 @@ const defaultForm = {
   remark: null
 }
 export default {
-  name: 'Reserve',
+  name: 'ReserveList',
   components: { crudOperation, rrOperation, pagination, resourceGroupPicker, workTimePicker, patientPicker, patientTermPicker, verify, deptPicker },
   cruds() {
     return CRUD({
@@ -289,6 +289,11 @@ export default {
       this.query.comId = dept.comId
       this.query.deptId = dept.deptId
       this.crud.toQuery()
+    },
+    handleFormDeptChange(dept) {
+      this.form.orgId = dept.orgId
+      this.form.comId = dept.comId
+      this.form.deptId = dept.deptId
     },
     // 开始 "新建/编辑" - 之前
     [CRUD.HOOK.afterToCU](crud, form) {

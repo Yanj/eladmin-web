@@ -53,7 +53,7 @@
         </el-table-column>
         <el-table-column v-for="(item, index) in tableColumns" :key="index" :label="item.label" align="center" :width="showStatus ? 100 : 60">
           <template slot-scope="scope">
-            <span v-for="(reserve, reserveIndex) in scope.row.list[index].reserves" :key="reserve.id" style="display: block;text-align: left;padding-left: 5px;">
+            <span v-for="(reserve, reserveIndex) in scope.row.list[index].reserves" :key="reserve.id" :class="'verify-status-' + reserve.verifyStatus" style="display: block;text-align: left;padding-left: 5px;">
               {{ reserveIndex !== 0 ? '' : '' }}
               {{ reserve.patient.name }}
               <i v-if="showStatus">({{ verifyStatus_labels[reserve.verifyStatus] }})</i>
@@ -61,6 +61,25 @@
           </template>
         </el-table-column>
       </el-table>
+    </div>
+    <div class="color-description-container">
+      <label class="color-title">状态说明:</label>
+      <div class="color-description">
+        <i class="color-block color-status-init" />
+        <label class="color-label">已预约</label>
+      </div>
+      <div class="color-description">
+        <i class="color-block color-status-check_in" />
+        <label class="color-label">已签到</label>
+      </div>
+      <div class="color-description">
+        <i class="color-block color-status-verified" />
+        <label class="color-label">已核销</label>
+      </div>
+      <div class="color-description">
+        <i class="color-block color-status-canceled" />
+        <label class="color-label">已取消</label>
+      </div>
     </div>
   </div>
 </template>
@@ -110,7 +129,8 @@ export default {
         'verified': '已核销',
         'canceled': '已取消'
       },
-      showStatus: true,
+      // showStatus: true,
+      showStatus: false,
       downloadLoading: false
     }
   },
@@ -156,7 +176,7 @@ export default {
       this.tableLoading = true
       workTimeReserveListApi.getWorkTimeReserveList(this.query).then(res => {
         if (res) {
-          this.showStatus = !this.query.verifyStatus
+          // this.showStatus = !this.query.verifyStatus
           this.tableData = res
         }
         this.tableLoading = false
@@ -188,8 +208,59 @@ export default {
 }
 </script>
 
+<style lang="less" scoped>
+.color-description-container {
+  width: 100%;
+  padding: 10px 0;
+  display: flex;
+  .color-title {
+    font-size: 14px;
+    color: #333;
+  }
+  .color-description {
+    display: flex;
+    margin: 0 5px;
+    align-items: center;
+    .color-block {
+      display: inline-block;
+      width: 24px;
+      height: 16px;
+      margin-right: 2px;
+    }
+    .color-label {
+      color: #333;
+      font-size: 12px;
+      line-height: 16px;
+    }
+    .color-status-init {
+      background: green;
+    }
+    .color-status-check_in {
+      background: red;
+    }
+    .color-status-verified {
+      background: blue;
+    }
+    .color-status-canceled {
+      background: #666;
+    }
+  }
+}
+</style>
 <style>
 #printWrapper .el-table .cell {
   padding: 0;
+}
+.verify-status-init {
+  color: green;
+}
+.verify-status-check_in {
+  color: red;
+}
+.verify-status-verified {
+  color: blue;
+}
+.verify-status-canceled {
+  color: #666;
 }
 </style>

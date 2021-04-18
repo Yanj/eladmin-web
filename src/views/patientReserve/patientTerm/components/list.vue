@@ -42,13 +42,13 @@
     <el-dialog append-to-body :close-on-click-modal="false" :before-close="crud.cancelCU" :visible.sync="crud.status.cu > 0" :title="crud.status.title" width="570px">
       <el-form ref="form" inline :model="form" :rules="rules" size="small" label-width="120px">
         <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请选择部门', trigger:'blur'}]" label="部门">
-          <dept-picker v-model="formDept" width="370" :disabled="disableEdit" />
+          <dept-picker v-model="formDept" width="370" :disabled="disableEdit" @change="handleFormDeptChange" />
         </el-form-item>
         <el-form-item label="患者" prop="patient">
           <patient-picker :com-id="form.comId" :value="currentPatients" :disabled="form.id != null" @change="handlePatientsChange" />
         </el-form-item>
         <el-form-item label="套餐" prop="term">
-          <term-picker :value="currentTerms" :disabled="form.id != null" @change="handleTermsChange" />
+          <term-picker :com-id="form.comId" :value="currentTerms" :disabled="form.id != null" @change="handleTermsChange" />
         </el-form-item>
         <el-form-item label="套餐编码" prop="termCode">
           <el-input v-model="form.termCode" :disabled="true" style="width: 370px;" />
@@ -214,7 +214,7 @@ const defaultForm = {
   remark: null
 }
 export default {
-  name: 'PatientTerm',
+  name: 'PatientTermList',
   components: { crudOperation, rrOperation, udOperation, pagination, CurrencyInput, patientPicker, termPicker, deptPicker },
   cruds() {
     return CRUD({
@@ -308,6 +308,11 @@ export default {
       this.query.deptId = dept.deptId
       this.crud.toQuery()
     },
+    handleFormDeptChange(dept) {
+      this.form.orgId = dept.orgId
+      this.form.comId = dept.comId
+      this.form.deptId = dept.deptId
+    },
     // 刷新之前
     [CRUD.HOOK.beforeRefresh](crud) {
       console.log(this.patientId)
@@ -323,11 +328,17 @@ export default {
     // 开始 "新建/编辑" - 之前
     [CRUD.HOOK.afterToCU](crud, form) {
       if (form.id) {
-        this.currentPatientName = form.patient.name
         form.editPrice = this.parseMoney(form.price)
         form.editTermPrice = this.parseMoney(form.termPrice)
         form.editTermOriginalPrice = this.parseMoney(form.termOriginalPrice)
+        this.currentPatientName = form.patient.name
         this.currentPatients = [form.patient]
+        this.currentTerms = [
+          {
+            id: form.termId,
+            name: form.termName
+          }
+        ]
         this.disableEdit = true
       } else {
         form.patient = { id: null, name: null }

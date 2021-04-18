@@ -42,7 +42,7 @@ import { getByDeptId } from '@/api/system/user'
 import store from '@/store'
 
 export default {
-  name: 'Verify',
+  name: 'ReserveVerify',
   props: {
     value: {
       type: Object,

@@ -8,7 +8,7 @@
       width="80%"
       :before-close="handleClose"
     >
-      <term-list ref="termList" mode="picker" @selection-change="handleTermSelectionChange" />
+      <term-list ref="termList" :com-id="comId" mode="picker" @selection-change="handleTermSelectionChange" />
       <!--按钮组-->
       <span slot="footer" class="dialog-footer">
         <el-button @click="handleCancel">取 消</el-button>

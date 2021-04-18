@@ -30,7 +30,7 @@
 import { getReserveListByPatientTermId } from '@/api/yy/reserve'
 
 export default {
-  name: 'RecentReserveList',
+  name: 'ReservePanelRecentReserveList',
   props: {
     patientTerm: {
       type: Object,

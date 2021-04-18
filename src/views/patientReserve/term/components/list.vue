@@ -162,7 +162,7 @@ const defaultForm = {
   remark: null
 }
 export default {
-  name: 'Term',
+  name: 'TermList',
   components: { crudOperation, rrOperation, udOperation, pagination, CurrencyInput, deptPicker },
   cruds() {
     return CRUD({

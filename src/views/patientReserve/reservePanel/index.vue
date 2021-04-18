@@ -85,7 +85,7 @@ import ReserveList from './components/reserveList'
 import RecentReserveList from './components/recentReserveList'
 
 export default {
-  name: 'ReservePatient',
+  name: 'ReservePanel',
   components: { deptPicker, TermList, PatientTermList, ReserveTime, ReserveList, RecentReserveList },
   mixins: [hasAdminPermission()],
   data: function() {

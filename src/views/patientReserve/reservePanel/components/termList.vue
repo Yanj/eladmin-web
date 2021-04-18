@@ -30,7 +30,7 @@ import termApi from '@/api/patientReserve/term'
 import { parseMoney } from '@/utils'
 
 export default {
-  name: 'TermList',
+  name: 'ReservePanelTermList',
   props: {
     comId: {
       type: [Number, String],

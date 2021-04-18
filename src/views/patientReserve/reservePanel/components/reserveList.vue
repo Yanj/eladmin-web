@@ -31,7 +31,7 @@
 <script>
 
 export default {
-  name: 'ReserveList',
+  name: 'ReservePanelReserveList',
   props: {
     reserveList: {
       type: Array,

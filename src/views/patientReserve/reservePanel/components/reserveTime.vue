@@ -65,7 +65,7 @@ import { cloneDeep } from 'lodash/lang'
 import { getDate, formatDate } from '@/utils'
 
 export default {
-  name: 'ReserveTime',
+  name: 'ReservePanelReserveTime',
   components: {},
   props: {
     comId: {

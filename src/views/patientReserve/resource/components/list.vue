@@ -18,7 +18,7 @@
       <el-form ref="form" inline :model="form" size="small" label-width="80px">
         <template v-if="hasAdminPermission">
           <el-form-item v-if="hasAdminPermission" :rules="[{required:true, message:'请选择部门', trigger:'blur'}]" label="部门">
-            <dept-picker v-model="formDept" width="370" :disabled="disableEdit" />
+            <dept-picker v-model="formDept" width="370" :disabled="disableEdit" @change="handleFormDeptChange" />
           </el-form-item>
         </template>
         <el-form-item :rules="[{required:true, message:'请选择分类', trigger:'blur'}]" label="分类">
@@ -110,7 +110,7 @@ const defaultForm = {
   remark: null
 }
 export default {
-  name: 'Resource',
+  name: 'ResourceList',
   components: { crudOperation, rrOperation, udOperation, pagination, resourceCategoryPicker, deptPicker },
   cruds() {
     return CRUD({
@@ -151,6 +151,11 @@ export default {
       this.query.comId = dept.comId
       this.query.deptId = dept.deptId
       this.crud.toQuery()
+    },
+    handleFormDeptChange(dept) {
+      this.form.orgId = dept.orgId
+      this.form.comId = dept.comId
+      this.form.deptId = dept.deptId
     },
     // 新增与编辑前做的操作
     [CRUD.HOOK.afterToCU](crud, form) {
