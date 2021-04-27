@@ -35,20 +35,20 @@
       <el-button type="primary" size="mini" style="margin-left: 10px" @click="handleFilter">过滤</el-button>
       <el-button size="mini" style="margin-left: 10px" @click="handleClear">清空</el-button>
     </div>
-    <el-table v-loading="loading" :data="tableData" :span-method="tableSpanMethod" :cell-class-name="tableCellClassMethod">
-      <el-table-column label="日期" prop="date" align="center" />
-      <el-table-column label="时段" align="center">
+    <el-table v-loading="loading" :data="tableData" :cell-class-name="tableCellClassMethod">
+      <el-table-column label="资源组" align="center">
         <template slot-scope="scope">
           <div>
-            {{ scope.row.workTime.beginTime }} - {{ scope.row.workTime.endTime }}</div>
+            {{ scope.row.resourceGroup.name }}
+          </div>
         </template>
       </el-table-column>
-      <el-table-column v-for="item in resourceGroups" :key="item.id" :label="item.name" align="center">
+      <el-table-column v-for="(columnData, index) in tableColumnData" :key="index" :label="getWorkTimeLabel(columnData.date, columnData.workTime)" align="center">
         <template slot-scope="scope">
-          <div style="background: #00000000;width:100%;height:100%;padding: 8px 12px;" @click.stop="handleResourceClick({resourceGroup: item, date: scope.row.date, workTime: scope.row.workTime, index: scope.$index}, scope.row)">
-            <label :class="scope.row.usedMap[item.id+''] !== originalTableData[scope.$index].usedMap[item.id+''] ? 'resourceGroup-count-changed': ''">{{ scope.row.usedMap[item.id+''] }}</label>
+          <div style="background: #00000000;width:100%;height:100%;padding: 8px 12px;" @click.stop="handleResourceClick({resourceGroup: scope.row.resourceGroup, date: scope.row.list[index].date, workTime: scope.row.list[index].workTime, index: scope.$index, columnIndex: index}, scope.row, scope.$index, index)">
+            <label :class="scope.row.list[index].used !== originalTableData[scope.$index].list[index].used ? 'resourceGroup-count-changed': ''">{{ scope.row.list[index].used }}</label>
             <label>/</label>
-            <label :class="scope.row.leftMap[item.id+''] === 0 ? 'resourceGroup-disabled':''">{{ scope.row.countMap[item.id+''] }}</label>
+            <label :class="scope.row.list[index].left === 0 ? 'resourceGroup-disabled':''">{{ scope.row.list[index].count }}</label>
           </div>
         </template>
       </el-table-column>
@@ -57,12 +57,11 @@
 </template>
 
 <script>
-import { getAllResourceGroups } from '@/api/patientReserve/resourceGroup'
-import { getReserveCountList } from '@/api/patientReserve/reserve'
+import { getReserveCountList2 } from '@/api/patientReserve/reserve'
 import workTimeApi from '@/api/patientReserve/workTime'
 
 import { cloneDeep } from 'lodash/lang'
-import { getDate, formatDate } from '@/utils'
+import { getDate, formatDate, parseTime } from '@/utils'
 
 export default {
   name: 'ReservePanelReserveTime',
@@ -87,8 +86,8 @@ export default {
         beginTime: null,
         endTime: null
       },
-      resourceGroups: [],
-      originalResourceGroups: [],
+      tableColumnData: [],
+      originalTableColumnData: [],
       tableData: [],
       originalTableData: [],
       loading: false,
@@ -140,7 +139,7 @@ export default {
     this.query.endDate = this.dateRange[1]
   },
   mounted() {
-    this.loadResourceGroups()
+    this.loadReserveCountList()
     this.loadAllWorkTimes()
   },
   methods: {
@@ -186,7 +185,7 @@ export default {
       this.loadReserveCountList()
     },
     // 单元格点击事件
-    handleResourceClick(obj, row) {
+    handleResourceClick(obj, row, rowIndex, columnIndex) {
       if (this.term) {
         const resourceGroups = this.term.resourceGroups || []
         let index = -1
@@ -197,9 +196,8 @@ export default {
           }
         }
         if (index !== -1) {
-          const id = obj.resourceGroup.id + ''
-          const changed = row.usedMap[id] !== this.originalTableData[obj.index].usedMap[id]
-          const hasLeft = row.leftMap[id] !== 0
+          const changed = row.list[columnIndex].used !== this.originalTableData[rowIndex].list[columnIndex].used
+          const hasLeft = row.list[columnIndex].left > 0
           console.log(':' + changed + ',' + hasLeft)
           if (changed || hasLeft) {
             this.$emit('on-item-click', obj, changed, hasLeft)
@@ -216,64 +214,56 @@ export default {
     },
     changeResourceCount(obj, num) {
       if (obj.hasOwnProperty('index')) {
-        this.tableData[obj.index].leftMap[obj.resourceGroup.id + ''] += num
-        this.tableData[obj.index].usedMap[obj.resourceGroup.id + ''] -= num
+        this.tableData[obj.index].list[obj.columnIndex].left += num
+        this.tableData[obj.index].list[obj.columnIndex].used -= num
       } else {
         console.log(obj)
         let index = -1
         for (let i = 0; i < this.tableData.length; i++) {
-          if (this.tableData[i].date === obj.date && this.tableData[i].workTime.id === obj.workTime.id) {
+          if (this.tableData[i].resourceGroup.id === obj.resourceGroup.id) {
             index = i
             break
           }
         }
         console.log(index)
-        if (index !== -1) {
-          this.tableData[index].leftMap[obj.resourceGroup.id + ''] += num
-          this.tableData[index].usedMap[obj.resourceGroup.id + ''] -= num
+        if (index === -1) {
+          return
         }
+
+        let columnIndex = -1
+        for (let i = 0; i < this.tableData[index].list.length; i++) {
+          if (this.tableData[index].list[i].date === obj.date && this.tableData[index].list[i].workTime.id === obj.workTime.id) {
+            columnIndex = i
+            break
+          }
+        }
+        console.log(columnIndex)
+        if (columnIndex === -1) {
+          return
+        }
+        this.tableData[index].list[columnIndex].left += num
+        this.tableData[index].list[columnIndex].used -= num
       }
     },
     reset() {
       this.loading = true
-      this.resourceGroups = cloneDeep(this.originalResourceGroups)
+      this.tableColumnData = cloneDeep(this.originalTableColumnData)
       this.tableData = cloneDeep(this.originalTableData)
       setTimeout(() => {
         this.loading = false
       }, 300)
     },
-    // 表格行合并
-    tableSpanMethod({ row, column, rowIndex, columnIndex }) {
-      if (columnIndex === 0) {
-        let lastDate = null
-        if (rowIndex !== 0) {
-          lastDate = this.tableData[rowIndex - 1].date
-        }
-        // 当数据不一样的时候开始统计总数
-        if (lastDate == null || lastDate !== row.date) {
-          let count = 0
-          for (let i = rowIndex; i < this.tableData.length; i++) {
-            if (this.tableData[i].date !== row.date) {
-              break
-            }
-            count++
-          }
-          return [count, 1]
-        }
-        return [0, 0]
-      }
-    },
     // 单元格样式
     tableCellClassMethod({ row, column, rowIndex, columnIndex }) {
-      if (columnIndex > 1) {
-        const resourceGroupId = this.resourceGroups[columnIndex - 2].id
-        if (row.usedMap[resourceGroupId] !== this.originalTableData[rowIndex].usedMap[resourceGroupId]) {
+      if (columnIndex > 0) {
+        const resourceGroupId = row.resourceGroup.id
+        if (row.list[columnIndex - 1].used !== this.originalTableData[rowIndex].list[columnIndex - 1].used) {
           return 'resourceGroup-used'
         }
         for (let i = 0; i < this.currentResourceGroups.length; i++) {
           if (resourceGroupId === this.currentResourceGroups[i].id) {
             // 没有预约次数的时候, 修改样式
-            if (row.leftMap[resourceGroupId] === 0) {
+            if (row.list[columnIndex - 1].left === 0) {
               return 'resourceGroup-no-left'
             } else {
               return 'resourceGroup-available'
@@ -281,7 +271,7 @@ export default {
           }
         }
         // 没有预约次数的时候, 修改样式
-        if (row.leftMap[resourceGroupId] === 0) {
+        if (row.list[columnIndex - 1].left === 0) {
           return 'resourceGroup-no-left'
         }
         return 'resourceGroup-disable'
@@ -291,29 +281,29 @@ export default {
     refresh(comId, manual) {
       if (comId !== this.query.comId || manual) {
         this.query.comId = comId
-        this.loadResourceGroups()
-      }
-    },
-    // 刷新数据
-    loadResourceGroups() {
-      if (this.query) {
-        this.loading = true
-        getAllResourceGroups({ comId: this.query.comId, sort: 'sort,asc' }).then(res => {
-          this.resourceGroups = res.content
-          this.originalResourceGroups = cloneDeep(res.content)
-          // 加载列表数据
-          this.loadReserveCountList()
-        })
+        this.loadReserveCountList()
       }
     },
     // 加载列表数据
     loadReserveCountList() {
-      getReserveCountList(this.query).then(res => {
-        this.tableData = res
-        this.originalTableData = cloneDeep(res)
+      if (!this.query) {
+        return
+      }
+      this.loading = true
+      getReserveCountList2(this.query).then(res => {
+        if (res) {
+          this.tableColumnData = res.times
+          this.originalTableColumnData = cloneDeep(res.times)
+          this.tableData = res.list
+          this.originalTableData = cloneDeep(res.list)
+        }
       }).finally(() => {
         this.loading = false
       })
+    },
+    // 获取日期时间
+    getWorkTimeLabel(date, workTime) {
+      return parseTime(date, '{m}-{d}') + ' ' + workTime.beginTime
     }
   }
 }

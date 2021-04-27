@@ -16,4 +16,12 @@ export function getUserWorkCountList(params) {
   })
 }
 
-export default { getUserWorkCount, getUserWorkCountList }
+export function getUserWorkCountGroup(params) {
+  return request({
+    url: 'api/yy/userWorkCount/group',
+    method: 'get',
+    params
+  })
+}
+
+export default { getUserWorkCount, getUserWorkCountList, getUserWorkCountGroup }

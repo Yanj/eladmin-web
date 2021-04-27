@@ -127,4 +127,12 @@ export function getReserveCountList(params) {
   })
 }
 
-export default { add, addList, edit, del, verify, checkIn, cancel, getResourceGroup, getReserveCountList }
+export function getReserveCountList2(params) {
+  return request({
+    url: 'api/yy/reserveResource/reserveCount2',
+    method: 'get',
+    params
+  })
+}
+
+export default { add, addList, edit, del, verify, checkIn, cancel, getResourceGroup, getReserveCountList, getReserveCountList2 }

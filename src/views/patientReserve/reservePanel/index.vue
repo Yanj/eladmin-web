@@ -80,7 +80,7 @@ import deptPicker from '@/views/patientReserve/components/deptPicker'
 
 import TermList from './components/termList'
 import PatientTermList from './components/patientTermList'
-import ReserveTime from './components/reserveTime'
+import ReserveTime from './components/reserveTime2'
 import ReserveList from './components/reserveList'
 import RecentReserveList from './components/recentReserveList'
 
@@ -222,14 +222,18 @@ export default {
     resetAll() {
       this.patient = { id: null, name: null, phone: null }
       this.patientTerm = null
-      this.term = null
+      if (this.isPatientFromHis) {
+        this.term = null
+      }
       this.reserveList = []
       this.$refs.reserveTime.reset()
     },
     reload() {
       this.patient = { id: null, name: null, phone: null }
       this.patientTerm = null
-      this.term = null
+      if (this.isPatientFromHis) {
+        this.term = null
+      }
       this.reserveList = []
       this.$refs.reserveTime.loadReserveCountList()
     },
@@ -270,7 +274,7 @@ export default {
       }
     },
     // 时间选择
-    handleReserveTimeItemClick(obj) {
+    handleReserveTimeItemClick(obj, changed, hasLeft) {
       if (this.patientTerm) {
         obj = { ...obj, patientTerm: this.patientTerm }
       } else if (this.term) {
@@ -308,6 +312,9 @@ export default {
           return
         } else if (this.term && this.getReserveCountById(this.term.id) >= 1) {
           this.$message('该套餐次数已耗尽')
+          return
+        }
+        if (!hasLeft) {
           return
         }
         // 新增
