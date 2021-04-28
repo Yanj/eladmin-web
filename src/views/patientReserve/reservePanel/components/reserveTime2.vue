@@ -61,7 +61,8 @@ import { getReserveCountList2 } from '@/api/patientReserve/reserve'
 import workTimeApi from '@/api/patientReserve/workTime'
 
 import { cloneDeep } from 'lodash/lang'
-import { getDate, formatDate, parseTime } from '@/utils'
+// import { getDate, formatDate, parseTime } from '@/utils'
+import { getDate, formatDate } from '@/utils'
 
 export default {
   name: 'ReservePanelReserveTime',
@@ -303,7 +304,8 @@ export default {
     },
     // 获取日期时间
     getWorkTimeLabel(date, workTime) {
-      return parseTime(date, '{m}-{d}') + ' ' + workTime.beginTime
+      // return parseTime(date, '{m}-{d}') + ' ' + workTime.beginTime
+      return workTime.beginTime + '-' + workTime.endTime
     }
   }
 }
