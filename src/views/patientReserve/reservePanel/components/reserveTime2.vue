@@ -305,7 +305,8 @@ export default {
     // 获取日期时间
     getWorkTimeLabel(date, workTime) {
       // return parseTime(date, '{m}-{d}') + ' ' + workTime.beginTime
-      return workTime.beginTime + '-' + workTime.endTime
+      // return workTime.beginTime + '-' + workTime.endTime
+      return workTime.beginTime
     }
   }
 }
