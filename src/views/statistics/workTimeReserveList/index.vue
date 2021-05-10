@@ -102,9 +102,9 @@ export default {
   data() {
     return {
       datePickOptions: {
-        disabledDate: (date) => {
-          return date.getTime() > Date.now()
-        }
+        // disabledDate: (date) => {
+        //   return date.getTime() > Date.now()
+        // }
       },
       query: {
         orgId: null,

@@ -25,7 +25,7 @@
             :picker-options="{
               start: '09:00',
               step: '00:10',
-              end: '18:00'
+              end: '20:00'
             }"
             style="width: 370px;"
           />
@@ -37,7 +37,7 @@
             :picker-options="{
               start: '09:00',
               step: '00:10',
-              end: '18:00'
+              end: '20:00'
             }"
             style="width: 370px;"
           />
