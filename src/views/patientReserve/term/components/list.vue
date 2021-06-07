@@ -283,7 +283,7 @@ export default {
     },
     // 刷新之后
     [CRUD.HOOK.afterRefresh](crud) {
-      this.$emit('afterRefresh', crud.page.page === 1)
+      this.$emit('afterRefresh', crud.page.page === 1, crud.selections)
       return true
     },
     handleSelectionChange(selection) {
@@ -339,6 +339,7 @@ export default {
             break
           }
         }
+        this.clearSelection()
       })
     }
   }
