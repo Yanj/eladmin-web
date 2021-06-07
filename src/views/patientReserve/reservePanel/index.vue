@@ -226,7 +226,8 @@ export default {
         this.term = null
       }
       this.reserveList = []
-      this.$refs.reserveTime.reset()
+      // this.$refs.reserveTime.reset()
+      this.$refs.reserveTime.loadReserveCountList()
     },
     reload() {
       this.patient = { id: null, name: null, phone: null }

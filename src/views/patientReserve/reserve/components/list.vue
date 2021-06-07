@@ -407,7 +407,7 @@ export default {
     },
     // 开始取消
     handleCancel(row) {
-      this.$confirm('当前记录的状态为[' + this.dict.label.reserve_status[row.verifyStatus] + '], 废除后将归还患者次数, 是否继续?', '提示', {
+      this.$confirm('当前记录的状态为[' + this.dict.label.reserve_verify_status[row.verifyStatus] + '], 废除后将归还患者次数, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
