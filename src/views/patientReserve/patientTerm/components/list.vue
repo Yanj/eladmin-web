@@ -8,7 +8,8 @@
           <dept-picker v-if="hasAdminPermission" @change="handleDeptChange" />
         </template>
         <el-input v-model="query.blurry" clearable size="small" placeholder="输入套餐名称/编码进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
-        <el-input v-model="query.patientName" clearable size="small" placeholder="输入患者名称进行搜索" style="width: 200px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <el-input v-model="query.patientName" clearable size="small" placeholder="输入患者名称进行搜索" style="width: 150px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
+        <el-input v-model="query.patientPhone" clearable size="small" placeholder="输入患者手机号进行搜索" style="width: 150px;" class="filter-item" @keyup.enter.native="crud.toQuery" />
         <el-select v-model="query.type" clearable size="small" placeholder="选择类型搜索" style="width: 150px;" class="filter-item" @change="crud.toQuery">
           <el-option v-for="item in dict.patient_term_type" :key="item.id" :label="item.label" :value="item.value" />
         </el-select>
@@ -118,7 +119,11 @@
       <el-table-column v-if="hasAdminPermission" label="医院ID" prop="comId" />
       <el-table-column v-if="hasAdminPermission" label="部门ID" prop="deptId" />
       <el-table-column label="购买ID" prop="patItemId" />
-      <el-table-column label="患者" prop="patient.name" />
+      <el-table-column label="患者">
+        <template slot-scope="scope">
+          {{ scope.row.patient.name }}-{{ scope.row.patient.phone }}
+        </template>
+      </el-table-column>
       <el-table-column label="套餐类型">
         <template slot-scope="scope">
           {{ dict.label.patient_term_type[scope.row.type] }}
@@ -126,24 +131,14 @@
       </el-table-column>
       <el-table-column label="套餐编码" prop="termCode" />
       <el-table-column label="套餐名称" prop="termName" />
-      <el-table-column label="套餐现价(元)" prop="termPrice">
+      <el-table-column label="实际支付" prop="price">
         <template slot-scope="scope">
-          {{ parseMoney(scope.row.termPrice) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="套餐原价(元)" prop="termOriginalPrice">
-        <template slot-scope="scope">
-          {{ parseMoney(scope.row.termOriginalPrice) }}
+          {{ parseMoney(scope.row.price) }}
         </template>
       </el-table-column>
       <el-table-column label="套餐次数">
         <template slot-scope="scope">
           {{ scope.row.termTimes }} {{ scope.row.termUnit }}
-        </template>
-      </el-table-column>
-      <el-table-column label="实际支付" prop="price">
-        <template slot-scope="scope">
-          {{ parseMoney(scope.row.price) }}
         </template>
       </el-table-column>
       <el-table-column label="剩余次数">
@@ -226,6 +221,7 @@ export default {
         deptId: null,
         blurry: null,
         patientName: null,
+        patientPhone: null,
         type: null,
         patientId: null
       },
